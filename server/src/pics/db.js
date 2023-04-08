@@ -1,7 +1,27 @@
-let mssql = require('mssql');
-let config = require('./config.json');
+let mssql = require('mssql/msnodesqlv8');
+let config = require('../../config.json');
 
-// following https://stackoverflow.com/questions/5156806/node-js-and-microsoft-sql-server
+module.exports = {
+    picsGet
+}
+
+async function picsGet(picsId = null) {
+  try {
+    let sql = await mssql.connect(config.picTamerSql);
+    let result = await sql.query `
+        select  n = count(*) 
+        from    dbo.pics
+        where   picsId = ${picsId} or ${picsId} is null
+    `;
+    return result.recordset;
+  } 
+  catch (err) {
+    console.error(err);
+  }
+  finally {
+    mssql.close();
+  }
+}
 
 
-mssql.connect(config.picTamerSql, func);
+picsGet().then(data => console.log(data));

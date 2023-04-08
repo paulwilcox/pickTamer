@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import FetchApiExample from '../views/FetchApiExample.vue'
+import pics from '../views/pics.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -22,6 +23,11 @@ const router = createRouter({
       path: '/FetchApiExample',
       name: 'fetchApiExample',
       component: FetchApiExample
+    },
+    {
+      path: '/pics',
+      name: 'pics',
+      component: pics
     }
   ]
 })
