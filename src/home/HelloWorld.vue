@@ -1,8 +1,3 @@
-<script>
-import { useCounterStore } from './counter.js'
-useCounterStore
-</script>
-
 <script setup>
 defineProps({
   msg: {
