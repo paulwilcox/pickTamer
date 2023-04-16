@@ -1,10 +1,11 @@
 let express = require('express');
 let router = express.Router();
-let db = require('./db');
+let db = require('./db/repo.js');
 
-router.get('/pics', async (req, res) => {
+router.get('/', async (req, res) => {
   let pics = await db.getPics();
-  res.render('pics', pics );
+  let json = JSON.stringify(pics);
+  res.json(json);
 });
 
 module.exports = router;
