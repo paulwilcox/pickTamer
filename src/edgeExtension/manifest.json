@@ -1,0 +1,19 @@
+{
+    "name": "PickTamer Context Menu",
+    "version": "1.0",
+    "description": "Helper for working with images on other sites",
+    "manifest_version": 2,
+    "permissions": [
+      "activeTab"
+    ],
+    "content_scripts": [
+      {
+        "matches": [
+          "<all_urls>"
+        ],
+        "js": [
+          "content.js"
+        ]
+      }
+    ]
+  }
