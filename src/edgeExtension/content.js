@@ -1,5 +1,8 @@
 window.addEventListener("contextmenu", function(event) {
 
+  if(!event.ctrlKey)
+    return;
+
   var x = event.clientX;
   var y = event.clientY;
   let img = 
@@ -10,7 +13,7 @@ window.addEventListener("contextmenu", function(event) {
     return;  
 
   event.preventDefault();
-  
+
   let cm = document.querySelector("#pickTamerContextMenu");
   Object.assign(cm.style, {
     top: event.pageY + "px",
@@ -32,7 +35,7 @@ document.addEventListener("keydown", event => {
 function hideConextMenu (event) {
   let contextMenu = document.querySelector("#pickTamerContextMenu");
   // Check if the context menu is open and the click did not occur inside the context menu
-  if (contextMenu && !contextMenu.contains(event.target)) {
+  if (contextMenu && (!event || !contextMenu.contains(event.target))) {
     contextMenu.style.display = "none";
   }
 }
@@ -59,8 +62,8 @@ window.onload = function() {
     href: "https://www.google.com",
     target: "_blank"
   })
-
   div.appendChild(item);
+  
   document.body.appendChild(div);
 
 };
