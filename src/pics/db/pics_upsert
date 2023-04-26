@@ -1,0 +1,27 @@
+create procedure dbo.pics_upsert
+	@filePath nvarchar(255), 
+	@fileType nvarchar(15), 
+	@name nvarchar(50),
+	@description nvarchar(255), 
+	@notes nvarchar(255),
+	@source nvarchar(1000)
+as
+
+if exists (select 0 from dbo.picSources where source = @source) begin
+	update dbo.pics 
+	set	name = @name,
+		description = @description,
+		notes = @notes
+	return;
+end
+	
+declare @newPkTable table (pk int);
+declare @newPk int;
+
+insert dbo.pics (filePath, fileType, name, description, notes)
+output inserted.picsId into @newPkTable
+values (@filePath, @fileType, @name, @description, @notes)
+
+insert dbo.picSources (picsId, source)
+values (@newPk, @source);
+

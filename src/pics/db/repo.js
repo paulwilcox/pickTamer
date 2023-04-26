@@ -11,10 +11,15 @@ async function getPics (picsId = null) {
         from    dbo.pics
         where   picsId = @picsId or @picsId is null
     `
-    let params = { picsId: null }
-    return await db.query(cmd, { picsId: picsId });
+    let params = { picsId: picsId }
+    return await db.query(cmd, params);
 
 }
 
+async function upsertPic (filePath, fileType, name, description, notes, source) {
+    return await db.query(`dbo.pics_upsert`, {
+        filePath, fileType, name, description, notes, source
+    });
+}
 
 
