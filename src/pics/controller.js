@@ -16,19 +16,20 @@ module.exports.loadNewImages = async function (imagesDirectory) {
 
         for(let file of files) {
 
-            let origName = path.parse(file).name 
             let extension = path.extname(file).slice(1)
-            let insertedPicId = await db.insertPic(imagesDirectory, origName, extension)
+            let insertedPicId = await db.insertPic(
+                extension, 
+                `${newFilesPath}\\${file}`, // source 
+                file // sourceShort
+            )
 
-            let origNameExt = `${origName}.${extension}`
-            let oldFull = `${newFilesPath}\\${origNameExt}`
-            let newFull = `${imagesDirectory}\\${insertedPicId}.${extension}`
+            let newFile = `${insertedPicId}.${extension}`
+            let oldFull = `${newFilesPath}\\${file}`
+            let newFull = `${imagesDirectory}\\${newFile}`
             await fs.rename(oldFull, newFull, err => 
                 err 
-                ? console.err(`Could not process ${origNameExt}}`)
-                : console.log(
-                    `'${origNameExt} processed as ${insertedPicId}.${extension}`
-                  )
+                ? console.err(`Could not process ${file}}`)
+                : console.log(`'${file} processed as ${newFile}`)
             )
 
         }

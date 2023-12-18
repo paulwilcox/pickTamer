@@ -17,17 +17,17 @@ async function getPics (picId = null) {
 
 }
 
-async function insertPic (directory, origName, extension, description, notes) {
+async function insertPic (extension, source, sourceShort, description, notes) {
     if (!description) description = null
     if (!notes) notes = null
     let result = await db.query(`
         exec dbo.pic_insert
-            \@directory = @directory,
-            \@origName = @origName,
             \@extension = @extension,
+            \@source = @source,
+            \@sourceShort = @sourceShort,
             \@description = @description,
             \@notes = @notes
-    `, {directory, origName, extension, description, notes}
+    `, {extension, source, sourceShort, description, notes}
     )
     return result[0].picId // result should return exactly one record
 }
