@@ -2,9 +2,9 @@
   <main>
     <h1>Pics Page</h1>
 
-    <div v-for="(image, index) in imageList" :key="index" class="image-container">
+    <div v-for="(item, index) in imageList" :key="index" class="image-container">
       <img
-        :src="getImageUrl(image)"
+        :src="getImageUrl(item)"
         :alt="'Image ' + (index + 1)"
         @click="selectImage(index)"
         :class="{ selected: selectedIndex === index }"
@@ -17,11 +17,7 @@
 export default {
   data() {
     return {
-      imageList: [
-        { id: 1, name: 'oip1.jpg' },
-        { id: 2, name: 'oip2.jpg' },
-        { id: 3, name: 'oip3.jpg' },
-      ], // Add your image properties here
+      imageList: null, 
       selectedIndex: null,
     };
   },
@@ -35,13 +31,13 @@ export default {
           return response.json();
         })
         .then(json => {
-          console.log({data: json})
+          this.imageList = JSON.parse(json)
         })
         .catch(error => console.error(error));
     },
-    getImageUrl(image) {
+    getImageUrl(imageItem) {
       // Construct the image URL based on your server logic
-      return `http://localhost:3000/image?fileName=${image.name}`;
+      return `http://localhost:3000/image?fileName=${imageItem.picId}.${imageItem.extension}`;
     },
     selectImage(index) {
       // Toggle the selection when clicking on an image

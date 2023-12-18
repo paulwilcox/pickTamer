@@ -9,7 +9,7 @@ async function getPics (picId = null) {
 
     let cmd = `
         select  *
-        from    dbo.pics
+        from    dbo.pic
         where   picId = @picId or @picId is null
     `
     let params = { picId: picId }
