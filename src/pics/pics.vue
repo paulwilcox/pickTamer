@@ -6,7 +6,7 @@
       <img
         :src="getImageUrl(item)"
         :alt="'Image ' + (index + 1)"
-        @click="selectImage(index)"
+        @click="selectImage(item, index)"
         :class="{ selected: selectedIndex === index }"
       >
     </div>
@@ -23,7 +23,6 @@ export default {
   },
   methods: {
     fetchData() {
-      console.log('fetchData()')
       fetch('http://localhost:3000/pics')
         .then(response => {
           if (!response.ok) 
@@ -39,9 +38,9 @@ export default {
       // Construct the image URL based on your server logic
       return `http://localhost:3000/image?fileName=${imageItem.picId}.${imageItem.extension}`;
     },
-    selectImage(index) {
-      // Toggle the selection when clicking on an image
-      this.selectedIndex = this.selectedIndex === index ? null : index;
+    async selectImage(item, index) {
+      await fetch(`http://localhost:3000/pics/select?picId=${item.picId}`)
+      this.selectedIndex = index;
     },
     handleKeyPress(event) {
       if (event.ctrlKey) {

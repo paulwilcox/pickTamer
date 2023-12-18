@@ -2,7 +2,8 @@ let db = require('@db')
 
 module.exports = {
     getPics,
-    insertPic
+    insertPic,
+    selectPic
 }
 
 async function getPics (picId = null) {
@@ -17,6 +18,15 @@ async function getPics (picId = null) {
 
 }
 
+async function selectPic (picId, picOrderId = null) {
+    db.execute(`
+        exec dbo.picOrderItem_select
+            \@picId = @picId,
+            \@picOrderId = @picOrderId
+        `, { picId, picOrderId }
+    )
+}
+
 async function insertPic (extension, source, sourceShort, description, notes) {
     if (!description) description = null
     if (!notes) notes = null
@@ -27,7 +37,7 @@ async function insertPic (extension, source, sourceShort, description, notes) {
             \@sourceShort = @sourceShort,
             \@description = @description,
             \@notes = @notes
-    `, {extension, source, sourceShort, description, notes}
+        `, {extension, source, sourceShort, description, notes}
     )
     return result[0].picId // result should return exactly one record
 }

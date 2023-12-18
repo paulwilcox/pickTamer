@@ -20,7 +20,6 @@ app.use('/home', homeRouter);
 app.use('/pics', picsRouter);
 
 app.get('/image', (req, res) => {
-    console.log('here at server.js app get image')
     let imagePath = imagesDirectory + '//' + req.query.fileName
     res.sendFile(imagePath)
 });
