@@ -1,25 +1,37 @@
 let db = require('@db')
 
 module.exports = {
-    getPics
+    getPics,
+    insertPic
 }
 
-async function getPics (picsId = null) {
+async function getPics (picId = null) {
 
     let cmd = `
         select  *
         from    dbo.pics
-        where   picsId = @picsId or @picsId is null
+        where   picId = @picId or @picId is null
     `
-    let params = { picsId: picsId }
+    let params = { picId: picId }
     return await db.query(cmd, params);
 
 }
 
-async function upsertPic (filePath, fileType, name, description, notes, source) {
-    return await db.query(`dbo.pics_upsert`, {
-        filePath, fileType, name, description, notes, source
-    });
+async function insertPic (directory, name, extension, description, notes) {
+    let result = await db.query(`
+        exec dbo.pics_insert
+            \@directory = @directory,
+            \@name = @name,
+            \@extension = @extension,
+            \@description = @description,
+            \@notes = @notes
+    `, {directory, name, extension, description, notes}
+    )
+    let picId = result[0].picId // result should return exactly one record
+    console.log(
+        `'${name}.${extension} inserted with picId = ${picId}`
+    )
+    return picId
 }
 
 

@@ -1,0 +1,17 @@
+create or alter procedure dbo.pics_insert
+	@directory nvarchar(255), 
+	@name nvarchar(50),
+	@extension nvarchar(15), 
+	@description nvarchar(255), 
+	@notes nvarchar(255)
+as
+
+if isnull(@directory,'') = '' throw 50000, '@directory cannot be blank or null', 1;
+if isnull(@name,'') = '' throw 50000, '@filePath cannot be blank or null', 1;
+if isnull(@extension,'') = '' throw 50000, '@extension cannot be blank or null', 1;
+if trim(@description) = '' set @description = null 
+if trim(@notes) = '' set @notes = null 
+	
+insert dbo.pics (directory, name, extension, description, notes)
+output inserted.picId
+values (@directory, @name, @extension, @description, @notes)
