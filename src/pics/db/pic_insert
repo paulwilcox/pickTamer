@@ -1,0 +1,42 @@
+create or alter procedure dbo.pic_insert
+	@directory nvarchar(255), 
+	@origName nvarchar(50),
+	@extension nvarchar(15), 
+	@description nvarchar(255), 
+	@notes nvarchar(255)
+as
+
+if isnull(@directory,'') = '' throw 50000, '@directory cannot be blank or null', 1;
+if isnull(@origName,'') = '' throw 50000, '@origName cannot be blank or null', 1;
+if isnull(@extension,'') = '' throw 50000, '@extension cannot be blank or null', 1;
+if trim(@description) = '' set @description = null 
+if trim(@notes) = '' set @notes = null 
+
+begin try
+	
+	begin transaction
+
+	declare @insertedPicTable table (picId int)
+
+	insert dbo.pic (directory, extension, description, notes)
+	output inserted.picId into @insertedPicTable
+	values (@directory, @extension, @description, @notes)
+
+	declare @insertedPicId int = (select picId from @insertedPicTable)
+
+	insert dbo.picSource (picId, source, sourceShort)
+	values (
+		@insertedPicId,
+		@directory + '\' + @origName + '.' + @extension,
+		@origName + '.' + @extension
+	)
+
+	commit
+
+	select @insertedPicId as picId
+
+end try 
+begin catch
+	rollback
+	;throw
+end catch
