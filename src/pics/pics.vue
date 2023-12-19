@@ -17,7 +17,7 @@
 
       <div id="imagesDiv" class="imageListContainer">
         <h2>picOrder:
-          <select @change="getPics($event.target.value, imageList)">
+          <select id="ddPicOrder" @change="getPics($event.target.value, imageList)">
             <option value="" disabled selected>choose</option>            
             <option v-for="picOrder in picOrderList" 
               :value="picOrder.picOrderId"
@@ -66,7 +66,7 @@
       <div id="otherImagesDiv" class="imageListContainer">
 
         <h2>Other picOrder:
-          <select @change="getPics($event.target.value, otherImageList)">
+          <select id="ddOtherPicOrder" @change="getPics($event.target.value, otherImageList)">
             <option value="" disabled selected>choose</option>            
             <option v-for="picOrder in picOrderList" 
               :value="picOrder.picOrderId"
@@ -76,39 +76,42 @@
           </select>
         </h2>
 
-        <table v-for="item in otherImageList" class="imgTable">
-          <tr>
-            <td></td>
-            <td>
-              <button v-if="selectedItem" @click="moveSelected(item, otherImageList)">
-                move here
-              </button>
-            </td>
-            <td></td>
-          </tr>
-          <tr>
-            <td></td>
-            <td>
-              <img
-                :src="getImageUrl(item)"
-                :alt="`image-ix-${item.picId}`"
-                @click="selectImage(item)"
-                :class="{ selected: selectedItem && item && selectedItem.picId === item.picId }"
-                style="max-width: 150px;"
-              >
-            </td>
-            <td></td>
-          </tr>
-          <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-          </tr>
-        </table>
+        <div v-if="!this.pickOrdersAreSame()">
+          <table v-for="item in otherImageList" class="imgTable">
+            <tr>
+              <td></td>
+              <td>
+                <button v-if="selectedItem" @click="moveSelected(item, otherImageList)">
+                  move here
+                </button>
+              </td>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td>
+                <img
+                  :src="getImageUrl(item)"
+                  :alt="`image-ix-${item.picId}`"
+                  @click="selectImage(item)"
+                  :class="{ selected: selectedItem && item && selectedItem.picId === item.picId }"
+                  style="max-width: 150px;"
+                >
+              </td>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+          </table>
 
-        <button v-if="selectedItem" @click="moveSelected(null, otherImageList)">
-          move here
-        </button>
+          <button v-if="selectedItem" @click="moveSelected(null, otherImageList)">
+            move here
+          </button>
+
+        </div>
 
       </div>
 
@@ -180,12 +183,16 @@ export default {
         // of all items that come after reduce by 1
         if (targetIndex > existingIndex)
           targetIndex-- 
-        
         targetSourceList.splice(targetIndex, 0, removed)
       }
       else 
         targetSourceList.splice(targetIndex, 0, this.selectedItem)
 
+    },
+    pickOrdersAreSame() {
+      let pickOrderId = document.querySelector('#ddPicOrder')?.value
+      let otherPickOrderId = document.querySelector('#ddOtherPicOrder')?.value
+      return pickOrderId == otherPickOrderId;
     }
   },
   async mounted() {
