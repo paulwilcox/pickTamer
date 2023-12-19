@@ -2,26 +2,20 @@ let db = require('@db')
 
 module.exports = {
     getPics,
-    insertPic,
-    selectPic
+    getPicOrders,
+    insertPic
+}
+
+async function getPicOrders () {
+    return await db.query(`exec dbo.picOrder_list`)
 }
 
 async function getPics (picOrderId = null) {
     return await db.query(`
         exec dbo.pic_list
-            \@picOrderId = @picOrderId,
-            \@isOrdered = null
-        `,
-        { picOrderId: null }
-    )
-}
-
-async function selectPic (picId, picOrderId = null) {
-    db.execute(`
-        exec dbo.picOrderItem_select
-            \@picId = @picId,
             \@picOrderId = @picOrderId
-        `, { picId, picOrderId }
+        `,
+        { picOrderId: picOrderId === null ? null : parseInt(picOrderId) }
     )
 }
 

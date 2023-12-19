@@ -1,10 +1,6 @@
 create or alter procedure dbo.pic_list
-	@picOrderId int = null,
-	@isOrdered bit = null
+	@picOrderId int = null -- null for unordered pics
 as
-
-if @picOrderId is null 
-	set @picOrderId = (select picOrderId from dbo.picOrder where isDefault = 1)
 
 select
 	p.picId,
@@ -13,16 +9,11 @@ select
 	p.notes,
 	oi.picOrderItemId,
 	oi.previousPicId,
-	oi.nextPicId,
-	ap.isOrdered
+	oi.nextPicId
 from dbo.pic as p
 left join dbo.picOrderItem as oi
 	join dbo.picOrder as o 
 		on oi.picOrderId = o.picOrderId
 	on p.picId = oi.picId 
-	and oi.picOrderId = @picOrderId
-cross apply (select 
-	isOrdered = iif(oi.picOrderItemId is null,0,1)
-) as ap
-where ap.isOrdered = @isOrdered
-	or @isOrdered is null
+where @picOrderId = oi.picOrderId
+	or (@picOrderId is null and oi.picOrderId is null)

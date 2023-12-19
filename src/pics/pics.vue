@@ -1,72 +1,115 @@
 <template>
   <main>
-    <h2>Ordered Pics:</h2>
 
-    <div v-if="imageList !== null && imageList.length === 0">
-      <div v-if="!lastSelectedType">
-        No ordered pics found.  
-        Select an unordered image to prepare it for ordering.
-      </div>
-      <div v-else>
-        <button @click="moveSelected('initial')">
-          add {{lastSelectedName}} here
-        </button>
-      </div>
-    </div>
+    <h2>Selected:</h2>
 
-    <div v-for="(item, index) in imageList" :key="index" class="image-container">
-      <table>
-        <tr>
-          <td class="imgTd"></td>
-          <td class="imgTd">
-            <button @click="moveSelected('before',item,index)">
-              move {{lastSelectedName}} here
-            </button>
-          </td>
-          <td class="imgTd"></td>
-        </tr>
-        <tr>
-          <td class="imgTd">
-            <button @click="moveSelected('before',item,index)">
-              move {{lastSelectedName}} here
-            </button>
-          </td>
-          <td>
-            <img
-              :src="getImageUrl(item)"
-              :alt="`image-ix-${index}`"
-              @click="selectImage(item, index)"
-              :class="{ selected: selectedIndex === index }"
-            >
-          </td>
-          <td class="imgTd">
-            <button @click="moveSelected('after',item,index)">
-              move {{lastSelectedName}} here
-            </button>
-          </td>
-        </tr>
-        <tr>
-          <td class="imgTd"></td>
-          <td class="imgTd">
-            <button @click="moveSelected('after',item,index)">
-              move {{lastSelectedName}} here
-            </button>
-          </td>
-          <td class="imgTd"></td>
-        </tr>
-      </table>
+    <div v-if="this.selectedItem">
+      <img
+        :src="getImageUrl(this.selectedItem)"
+        :alt="`image-picId-${this.selectedItem.picId}`"
+        style="max-height: 500px;"
+      >
     </div>
 
     <hr/>
 
-    <h2>Unordered Pics:</h2>
-    <div v-for="(item, index) in unorderedList" :key="index" class="image-container">
-      <img
-        :src="getImageUrl(item)"
-        :alt="`image-ix-${index}`"
-        @click="selectUnorderedImage(item, index)"
-        :class="{ selected: unorderedSelectedIndex === index }"
-      >
+    <div>
+
+      <div id="imagesDiv" class="imageListContainer">
+        <h2>picOrder:
+          <select @change="getPics($event.target.value)">
+            <option v-for="picOrder in picOrderList" 
+              :value="picOrder.picOrderId"
+            >
+              {{picOrder.orderName}}
+            </option>
+          </select>
+        </h2>
+
+        <table v-for="item in imageList" class="imgTable">
+          <tr>
+            <td></td>
+            <td>
+              <button v-if="selectedItem" @click="moveSelected(item, imageList)">
+                move here
+              </button>
+            </td>
+            <td></td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>
+              <img
+                :src="getImageUrl(item)"
+                :alt="`image-ix-${item.picId}`"
+                @click="selectImage(item, imageList)"
+                :class="{ selected: selectedItem && item && selectedItem.picId === item.picId }"
+                style="max-width: 150px;"
+              >
+            </td>
+            <td></td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </table>
+
+        <button v-if="selectedItem" @click="moveSelected(null, imageList)">
+          move here
+        </button>
+
+      </div>
+
+      <div id="otherImagesDiv" class="imageListContainer">
+
+        <h2>Other picOrder:
+          <select @change="getPics($event.target.value, 'other')">
+            <option v-for="picOrder in picOrderList" 
+              :value="picOrder.picOrderId"
+            >
+              {{picOrder.orderName}}
+            </option>
+          </select>
+        </h2>
+
+        <table v-for="item in otherImageList" class="imgTable">
+          <tr>
+            <td></td>
+            <td>
+              <button v-if="selectedItem" @click="moveSelected(item, otherImageList)">
+                move here
+              </button>
+            </td>
+            <td></td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>
+              <img
+                :src="getImageUrl(item)"
+                :alt="`image-ix-${item.picId}`"
+                @click="selectImage(item, otherImageList)"
+                :class="{ selected: selectedItem && item && selectedItem.picId === item.picId }"
+                style="max-width: 150px;"
+              >
+            </td>
+            <td></td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </table>
+
+        <button v-if="selectedItem" @click="moveSelected(null, otherImageList)">
+          move here
+        </button>
+
+      </div>
+
     </div>
 
   </main>
@@ -76,62 +119,83 @@
 export default {
   data() {
     return {
+      picOrderList: null,
+
+      picOrderItem: null,
       imageList: null, 
-      unorderedList: null,
-      lastSelectedType: null,
-      selectedIndex: null,
+
+      otherPicOrderItem: null,
+      otherImageList: null, 
+
       selectedItem: null,
-      unorderedSelectedIndex: null,
-      unorderedSelectedItem: null
+      selectedSourceList: null,
+      selectedPickOrderItem: null
     };
   },
-  computed: {
-    lastSelectedName() { 
-      if(this.lastSelectedType == 'unordered') 
-        return `${this.unorderedSelectedItem.picId}.${this.unorderedSelectedItem.extension}`
-      if(this.lastSelectedType == 'ordered')
-        return `${this.selectedItem.picId}.${this.selectedItem.extension}`
-      throw 'no item of any type has been selected yet'
-    }
-  },
   methods: {
-    async fetchData() {
-      let response = await fetch('http://localhost:3000/pics')
+    async getPics(picOrderId, listType = 'main') {
+
+      if (!['main','other'].includes(listType))
+        throw 'listType must be "main" or "other"'
+
+      if (picOrderId === undefined)
+        picOrderId = null
+
+      let picOrderItem = 
+        this.picOrderList
+        .find(item => item.picOrderId === picOrderId)
+
+      if (picOrderId !== null)
+        if(listType === 'main') 
+          this.picOrderItem = picOrderItem
+        else
+          this.otherPicOrderItem = picOrderItem
+
+      let response = await fetch(
+        `http://localhost:3000/pics?picOrderId=${picOrderId}`
+      )
       if (!response.ok) 
-        throw `error fetching data`
+        throw `error fetching pics`
+
       let json = await response.json()
       let parsed = JSON.parse(json)
-      this.imageList = parsed.filter(item => item.isOrdered)
-      this.unorderedList = parsed.filter(item => !item.isOrdered)
+      if (listType === 'main') 
+        this.imageList = parsed
+      else
+        this.otherImageList = parsed
+
+    },
+    async getPicOrders() {
+      let response = await fetch('http://localhost:3000/pics/picOrders')
+      if (!response.ok) 
+        throw `error fetching picOrders`
+      let json = await response.json()
+      this.picOrderList = JSON.parse(json)
     },
     getImageUrl(imageItem) {
       let fileName = `${imageItem.picId}.${imageItem.extension}`
       return `http://localhost:3000/image?fileName=${fileName}`
     },
-    async selectImage(item, index) {
-      await fetch(`http://localhost:3000/pics/select?picId=${item.picId}`)
-      this.selectedIndex = index
+    async selectImage(item, sourceList) {
       this.selectedItem = item
-      this.lastSelectedType = 'ordered'
+      this.selectedSourceList = sourceList
+      this.selectedPickOrderItem = 
+        sourceList === this.imageList ? this.picOrderItem
+        : sourceList === this.otherImageList ? this.otherPicOrderItem
+        : (() => { throw 'sourceList is null or unexpected value' })()
     },
-    async selectUnorderedImage(item, index) {
-      this.unorderedSelectedIndex = index
-      this.unorderedSelectedItem = item
-      this.lastSelectedType = 'unordered'
-    },
-    moveSelected(insertionType,item,index) {
-
-      if(insertionType == 'initial') {
-        alert('initial')
-        let removed = this.unorderedList.splice(this.unorderedSelectedIndex, 1)[0]
-        this.imageList.splice(0,0,removed) 
-        return 
-      }
-
+    moveSelected(insertionType, targetItem, targetSourceList) {
+      let targetPickOrderItem = 
+        targetSourceList === this.imageList ? this.picOrderItem
+        : targetSourceList === this.otherImageList ? this.otherPicOrderItem
+        : (() => { throw 'targetSourceList is null or unexpected value' })()
+      
     }
   },
-  mounted() {
-    this.fetchData();
+  async mounted() {
+    await this.getPicOrders();
+    this.getPics();
+    this.getPics(null, 'other')
   },
   beforeDestroy() {
     // to prevent memory leaks
@@ -142,18 +206,23 @@ export default {
 
 <style>
 
-  .image-container {
-    margin: 10px;
-    cursor: pointer;
+  .imageListContainer {
+    height: 800px;
+    border: 1px solid green;
+    overflow: auto;
+    width: 50%; 
+    float: left;    
+  }
+
+  .imgTable {
     display: inline-block;
   }
 
-  .imgUpperLeft,.imgUpper,.imgUpperRight,
-  .imgLeft,.imgRight, 
-  .imgLowerLeft,.imgLower,.imgLowerRight{
+  .imgTable td {
     border: solid 1px red;
     width: 25px;
     height: 25px;
+    margin: 10px;
   }
 
   .selected {
