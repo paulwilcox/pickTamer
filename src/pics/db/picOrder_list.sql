@@ -3,8 +3,4 @@ as
 
 select picOrderId, orderName, isDefault
 from dbo.picOrder
-
-union all 
-select null, '<unordered>', 0
-
-order by orderName
+order by isDefault desc, orderName

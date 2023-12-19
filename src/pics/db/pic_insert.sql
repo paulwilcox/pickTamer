@@ -23,6 +23,19 @@ begin try
 	values (@extension, @description, @notes)
 
 	declare @insertedPicId int = (select picId from @insertedPicTable)
+	declare @defaultPicOrderId int = (select picOrderId from dbo.picOrder where isDefault = 1)
+	declare @tailPicOrderItemId int = (select picOrderItemId from dbo.picOrderItem where picOrderId = @defaultPicOrderId)
+
+	insert dbo.picOrderItem (picId, picOrderId, previousPicId)
+	values (
+		@insertedPicId,
+		@defaultPicOrderId,
+		@tailPicOrderItemId
+	)
+
+	update dbo.picOrderItem
+	set nextPicId = @insertedPicId
+	where picOrderItemId = @tailPicOrderItemId 
 
 	insert dbo.picSource (picId, source, sourceShort)
 	values (@insertedPicId, @source, @sourceShort)

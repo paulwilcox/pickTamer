@@ -17,7 +17,8 @@
 
       <div id="imagesDiv" class="imageListContainer">
         <h2>picOrder:
-          <select @change="getPics($event.target.value)">
+          <select @change="getPics($event.target.value, imageList)">
+            <option value="" disabled selected>choose</option>            
             <option v-for="picOrder in picOrderList" 
               :value="picOrder.picOrderId"
             >
@@ -42,7 +43,7 @@
               <img
                 :src="getImageUrl(item)"
                 :alt="`image-ix-${item.picId}`"
-                @click="selectImage(item, imageList)"
+                @click="selectImage(item)"
                 :class="{ selected: selectedItem && item && selectedItem.picId === item.picId }"
                 style="max-width: 150px;"
               >
@@ -65,7 +66,8 @@
       <div id="otherImagesDiv" class="imageListContainer">
 
         <h2>Other picOrder:
-          <select @change="getPics($event.target.value, 'other')">
+          <select @change="getPics($event.target.value, otherImageList)">
+            <option value="" disabled selected>choose</option>            
             <option v-for="picOrder in picOrderList" 
               :value="picOrder.picOrderId"
             >
@@ -90,7 +92,7 @@
               <img
                 :src="getImageUrl(item)"
                 :alt="`image-ix-${item.picId}`"
-                @click="selectImage(item, otherImageList)"
+                @click="selectImage(item)"
                 :class="{ selected: selectedItem && item && selectedItem.picId === item.picId }"
                 style="max-width: 150px;"
               >
@@ -119,37 +121,17 @@
 export default {
   data() {
     return {
-      picOrderList: null,
-
-      picOrderItem: null,
-      imageList: null, 
-
-      otherPicOrderItem: null,
-      otherImageList: null, 
-
+      picOrderList: [],
+      imageList: [], 
+      otherImageList: [], 
       selectedItem: null,
-      selectedSourceList: null,
-      selectedPickOrderItem: null
     };
   },
   methods: {
-    async getPics(picOrderId, listType = 'main') {
+    async getPics(picOrderId, list) {
 
-      if (!['main','other'].includes(listType))
-        throw 'listType must be "main" or "other"'
-
-      if (picOrderId === undefined)
-        picOrderId = null
-
-      let picOrderItem = 
-        this.picOrderList
-        .find(item => item.picOrderId === picOrderId)
-
-      if (picOrderId !== null)
-        if(listType === 'main') 
-          this.picOrderItem = picOrderItem
-        else
-          this.otherPicOrderItem = picOrderItem
+      if (list !== this.imageList && list !== this.otherImageList)
+        throw 'list is null or of unexpected value'
 
       let response = await fetch(
         `http://localhost:3000/pics?picOrderId=${picOrderId}`
@@ -158,11 +140,13 @@ export default {
         throw `error fetching pics`
 
       let json = await response.json()
-      let parsed = JSON.parse(json)
-      if (listType === 'main') 
-        this.imageList = parsed
-      else
-        this.otherImageList = parsed
+      let parsedList = JSON.parse(json)
+
+      // todo: unselect may be more drastic than necessary in many cases
+      if (list === this.imageList) 
+        this.imageList = parsedList
+      else 
+        this.otherImageList = parsedList
 
     },
     async getPicOrders() {
@@ -176,26 +160,36 @@ export default {
       let fileName = `${imageItem.picId}.${imageItem.extension}`
       return `http://localhost:3000/image?fileName=${fileName}`
     },
-    async selectImage(item, sourceList) {
-      this.selectedItem = item
-      this.selectedSourceList = sourceList
-      this.selectedPickOrderItem = 
-        sourceList === this.imageList ? this.picOrderItem
-        : sourceList === this.otherImageList ? this.otherPicOrderItem
-        : (() => { throw 'sourceList is null or unexpected value' })()
+    async selectImage(item) {
+      this.selectedItem = item === this.selectedItem ? null : item
     },
-    moveSelected(insertionType, targetItem, targetSourceList) {
-      let targetPickOrderItem = 
-        targetSourceList === this.imageList ? this.picOrderItem
-        : targetSourceList === this.otherImageList ? this.otherPicOrderItem
-        : (() => { throw 'targetSourceList is null or unexpected value' })()
+    moveSelected(targetItem, targetSourceList) {
       
+      let targetIndex = 
+        !targetItem 
+        ? targetSourceList.length // put to end
+        : targetSourceList.findIndex(item => item.picId == targetItem.picId) 
+
+      let existingIndex =
+        targetSourceList
+        .findIndex(item => item.picId == this.selectedItem.picId)
+
+      if (existingIndex >= 0) {
+        let removed = targetSourceList.splice(existingIndex,1)[0]
+        // when you splice out the source, indexes 
+        // of all items that come after reduce by 1
+        if (targetIndex > existingIndex)
+          targetIndex-- 
+        
+        targetSourceList.splice(targetIndex, 0, removed)
+      }
+      else 
+        targetSourceList.splice(targetIndex, 0, this.selectedItem)
+
     }
   },
   async mounted() {
-    await this.getPicOrders();
-    this.getPics();
-    this.getPics(null, 'other')
+    await this.getPicOrders()
   },
   beforeDestroy() {
     // to prevent memory leaks
@@ -207,7 +201,7 @@ export default {
 <style>
 
   .imageListContainer {
-    height: 800px;
+    height: 600px;
     border: 1px solid green;
     overflow: auto;
     width: 50%; 
