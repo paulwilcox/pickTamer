@@ -1,15 +1,74 @@
 <template>
   <main>
-    <h1>Pics Page</h1>
+    <h2>Ordered Pics:</h2>
+
+    <div v-if="imageList !== null && imageList.length === 0">
+      <div v-if="!lastSelectedType">
+        No ordered pics found.  
+        Select an unordered image to prepare it for ordering.
+      </div>
+      <div v-else>
+        <button @click="moveSelected('initial')">
+          add {{lastSelectedName}} here
+        </button>
+      </div>
+    </div>
 
     <div v-for="(item, index) in imageList" :key="index" class="image-container">
+      <table>
+        <tr>
+          <td class="imgTd"></td>
+          <td class="imgTd">
+            <button @click="moveSelected('before',item,index)">
+              move {{lastSelectedName}} here
+            </button>
+          </td>
+          <td class="imgTd"></td>
+        </tr>
+        <tr>
+          <td class="imgTd">
+            <button @click="moveSelected('before',item,index)">
+              move {{lastSelectedName}} here
+            </button>
+          </td>
+          <td>
+            <img
+              :src="getImageUrl(item)"
+              :alt="`image-ix-${index}`"
+              @click="selectImage(item, index)"
+              :class="{ selected: selectedIndex === index }"
+            >
+          </td>
+          <td class="imgTd">
+            <button @click="moveSelected('after',item,index)">
+              move {{lastSelectedName}} here
+            </button>
+          </td>
+        </tr>
+        <tr>
+          <td class="imgTd"></td>
+          <td class="imgTd">
+            <button @click="moveSelected('after',item,index)">
+              move {{lastSelectedName}} here
+            </button>
+          </td>
+          <td class="imgTd"></td>
+        </tr>
+      </table>
+    </div>
+
+    <hr/>
+
+    <h2>Unordered Pics:</h2>
+    <div v-for="(item, index) in unorderedList" :key="index" class="image-container">
       <img
         :src="getImageUrl(item)"
-        :alt="'Image ' + (index + 1)"
-        @click="selectImage(item, index)"
-        :class="{ selected: selectedIndex === index }"
+        :alt="`image-ix-${index}`"
+        @click="selectUnorderedImage(item, index)"
+        :class="{ selected: unorderedSelectedIndex === index }"
       >
     </div>
+
   </main>
 </template>
 
@@ -18,117 +77,87 @@ export default {
   data() {
     return {
       imageList: null, 
+      unorderedList: null,
+      lastSelectedType: null,
       selectedIndex: null,
+      selectedItem: null,
+      unorderedSelectedIndex: null,
+      unorderedSelectedItem: null
     };
   },
+  computed: {
+    lastSelectedName() { 
+      if(this.lastSelectedType == 'unordered') 
+        return `${this.unorderedSelectedItem.picId}.${this.unorderedSelectedItem.extension}`
+      if(this.lastSelectedType == 'ordered')
+        return `${this.selectedItem.picId}.${this.selectedItem.extension}`
+      throw 'no item of any type has been selected yet'
+    }
+  },
   methods: {
-    fetchData() {
-      fetch('http://localhost:3000/pics')
-        .then(response => {
-          if (!response.ok) 
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          return response.json();
-        })
-        .then(json => {
-          this.imageList = JSON.parse(json)
-        })
-        .catch(error => console.error(error));
+    async fetchData() {
+      let response = await fetch('http://localhost:3000/pics')
+      if (!response.ok) 
+        throw `error fetching data`
+      let json = await response.json()
+      let parsed = JSON.parse(json)
+      this.imageList = parsed.filter(item => item.isOrdered)
+      this.unorderedList = parsed.filter(item => !item.isOrdered)
     },
     getImageUrl(imageItem) {
-      // Construct the image URL based on your server logic
-      return `http://localhost:3000/image?fileName=${imageItem.picId}.${imageItem.extension}`;
+      let fileName = `${imageItem.picId}.${imageItem.extension}`
+      return `http://localhost:3000/image?fileName=${fileName}`
     },
     async selectImage(item, index) {
       await fetch(`http://localhost:3000/pics/select?picId=${item.picId}`)
-      this.selectedIndex = index;
+      this.selectedIndex = index
+      this.selectedItem = item
+      this.lastSelectedType = 'ordered'
     },
-    handleKeyPress(event) {
-      if (event.ctrlKey) {
-        if (event.key === 'ArrowUp' && this.selectedIndex !== null && this.selectedIndex > 0) {
-          this.swapImages(this.selectedIndex, this.selectedIndex - 1);
-        } else if (event.key === 'ArrowDown' && this.selectedIndex !== null && this.selectedIndex < this.imageList.length - 1) {
-          this.swapImages(this.selectedIndex, this.selectedIndex + 1);
-        }
+    async selectUnorderedImage(item, index) {
+      this.unorderedSelectedIndex = index
+      this.unorderedSelectedItem = item
+      this.lastSelectedType = 'unordered'
+    },
+    moveSelected(insertionType,item,index) {
+
+      if(insertionType == 'initial') {
+        alert('initial')
+        let removed = this.unorderedList.splice(this.unorderedSelectedIndex, 1)[0]
+        this.imageList.splice(0,0,removed) 
+        return 
       }
-    },
-    swapImages(indexA, indexB) {
-      const imageA = this.imageList[indexA];
-      const imageB = this.imageList[indexB];
 
-      // Capture identifiers before the swap
-      const prevImageIdA = indexA > 0 ? this.imageList[indexA - 1].id : null;
-      const nextImageIdA = indexA < this.imageList.length - 1 ? this.imageList[indexA + 1].id : null;
-      const prevImageIdB = indexB > 0 ? this.imageList[indexB - 1].id : null;
-      const nextImageIdB = indexB < this.imageList.length - 1 ? this.imageList[indexB + 1].id : null;
-
-      // Swap the positions of two images in the list
-      this.imageList[indexA] = imageB;
-      this.imageList[indexB] = imageA;
-
-      // Capture identifiers after the swap
-      const updatedPrevImageIdA = indexB > 0 ? this.imageList[indexB - 1].id : null;
-      const updatedNextImageIdA = indexB < this.imageList.length - 1 ? this.imageList[indexB + 1].id : null;
-      const updatedPrevImageIdB = indexA > 0 ? this.imageList[indexA - 1].id : null;
-      const updatedNextImageIdB = indexA < this.imageList.length - 1 ? this.imageList[indexA + 1].id : null;
-
-      // Now, you can send the captured information to the server for database update
-      this.updateDatabase(
-        imageA.id,
-        imageB.id,
-        prevImageIdA,
-        nextImageIdA,
-        prevImageIdB,
-        nextImageIdB,
-        updatedPrevImageIdA,
-        updatedNextImageIdA,
-        updatedPrevImageIdB,
-        updatedNextImageIdB
-      );
-
-      // Update the selected index after the swap
-      this.selectedIndex = indexB;
-    },
-    updateDatabase(
-      idA,
-      idB,
-      prevIdA,
-      nextIdA,
-      prevIdB,
-      nextIdB,
-      updatedPrevIdA,
-      updatedNextIdA,
-      updatedPrevIdB,
-      updatedNextIdB
-    ) {
-      // Send the captured information to the server to update the database
-      // You can use an HTTP request (e.g., Axios) to send the data to your server
-      console.log('Update database with the following information:');
-      console.log('Image A:', idA, 'Previous:', prevIdA, 'Next:', nextIdA);
-      console.log('Image B:', idB, 'Previous:', prevIdB, 'Next:', nextIdB);
-      console.log('Updated Image A:', idA, 'Previous:', updatedPrevIdA, 'Next:', updatedNextIdA);
-      console.log('Updated Image B:', idB, 'Previous:', updatedPrevIdB, 'Next:', updatedNextIdB);
-    },
+    }
   },
   mounted() {
-    // Listen for keydown events to handle Ctrl+Up/Down arrow key presses
-    window.addEventListener('keydown', this.handleKeyPress);
     this.fetchData();
   },
   beforeDestroy() {
-    // Remove the event listener to prevent memory leaks
+    // to prevent memory leaks
     window.removeEventListener('keydown', this.handleKeyPress);
   },
 };
 </script>
 
 <style>
-.image-container {
-  margin: 10px;
-  cursor: pointer;
-  display: inline-block;
-}
 
-.selected {
-  border: 2px solid blue;
-}
+  .image-container {
+    margin: 10px;
+    cursor: pointer;
+    display: inline-block;
+  }
+
+  .imgUpperLeft,.imgUpper,.imgUpperRight,
+  .imgLeft,.imgRight, 
+  .imgLowerLeft,.imgLower,.imgLowerRight{
+    border: solid 1px red;
+    width: 25px;
+    height: 25px;
+  }
+
+  .selected {
+    border: 2px solid blue;
+  }
+
 </style>

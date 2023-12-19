@@ -9,6 +9,5 @@ create table dbo.picOrderItem (
 	previousPicId int,
 		constraint fk_picOrderItem_perviousPicId foreign key (previousPicId) references dbo.pic(picId),
 	nextPicId int,
-		constraint fk_picOrderItem_nextPicId foreign key (nextPicId) references dbo.pic(picId),
-	isSelected bit
+		constraint fk_picOrderItem_nextPicId foreign key (nextPicId) references dbo.pic(picId)
 )

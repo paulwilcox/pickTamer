@@ -1,5 +1,5 @@
 -- marks IsSelected = true (1) under an ordering
-create procedure dbo.picOrderItem_select 
+create or alter procedure dbo.picOrderItem_select 
 	@picId int,
 	@picOrderId int = null
 as 
@@ -7,17 +7,19 @@ as
 if @picOrderId is null 
 	set @picOrderId = (select picOrderId from dbo.picOrder where isDefault = 1)
 
-declare @errMsg nvarchar(255)
+declare 
+	@picOrderItem int,
+	@errMsg nvarchar(255)
 
-if not exists (select 0 from dbo.picOrder where picOrderId = @picOrderId) begin
-	set @errMsg = concat('picOrder with id = ', @picOrderId, ' does not exist')
+select @picOrderItem = picOrderItemId 
+from dbo.picOrderItem 
+where picOrderId = @picOrderId
+	and @picId = @picId 
+
+if @picOrderItem is null begin
+	set @errMsg = concat('picOrderItem not found (@picOrderId:', @picOrderId, ',@picId:',@picId,')')
 	; throw 50000, @errMsg, 1
 end 
 
-if not exists (select 0 from dbo.picOrderItem where picOrderId = @picOrderId and picId = @picId)
-	-- create a new item without ordering it
-	insert dbo.picOrderItem (picOrderId, picId)
-	values (@picOrderId, @picId)
-
-update dbo.picOrderItem
-set isSelected = iif(picId = @picId, 1, 0)
+update dbo.picOrder
+set selectedItem = @picOrderItem

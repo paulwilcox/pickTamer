@@ -6,16 +6,14 @@ module.exports = {
     selectPic
 }
 
-async function getPics (picId = null) {
-
-    let cmd = `
-        select  *
-        from    dbo.pic
-        where   picId = @picId or @picId is null
-    `
-    let params = { picId: picId }
-    return await db.query(cmd, params);
-
+async function getPics (picOrderId = null) {
+    return await db.query(`
+        exec dbo.pic_list
+            \@picOrderId = @picOrderId,
+            \@isOrdered = null
+        `,
+        { picOrderId: null }
+    )
 }
 
 async function selectPic (picId, picOrderId = null) {
