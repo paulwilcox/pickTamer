@@ -1,19 +1,31 @@
 create or alter procedure dbo.pic_list
-	@picOrderId int = null -- null for unordered pics
+	@picOrderId int
 as
+
+; with ordered as (
+	select picOrderItemId, nextPicId, ord = 0
+	from dbo.picOrderItem
+	where picOrderId = @picOrderId
+	and previousPicId is null
+
+	union all
+	select nxt.picOrderItemId, nxt.nextPicId, ord = prv.ord + 1
+	from ordered prv
+	join dbo.picOrderItem nxt on prv.nextPicId = nxt.picId
+)
 
 select
 	p.picId,
 	p.extension,
 	p.description,
 	p.notes,
-	oi.picOrderItemId,
-	oi.previousPicId,
-	oi.nextPicId
-from dbo.pic as p
-left join dbo.picOrderItem as oi
-	join dbo.picOrder as o 
-		on oi.picOrderId = o.picOrderId
-	on p.picId = oi.picId 
-where @picOrderId = oi.picOrderId
-	or (@picOrderId is null and oi.picOrderId is null)
+	poi.picOrderItemId,
+	poi.previousPicId,
+	poi.nextPicId,
+	o.ord
+from dbo.picOrderItem poi
+join dbo.pic as p on p.picId = poi.picId 
+join dbo.picOrder as po on poi.picOrderId = po.picOrderId
+join ordered o on poi.picOrderItemId = o.picOrderItemId
+where @picOrderId = poi.picOrderId
+order by ord

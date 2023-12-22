@@ -15,4 +15,14 @@ router.get('/picOrders', async (req, res) => {
   res.json(json)
 });
 
+router.get('/movePic', async (req, res) => {
+  let picOrderId = req.query.picOrderId
+  let picToMoveId = req.query.picToMoveId
+  let moveAfterPicId = req.query.moveAfterPicId
+  if (moveAfterPicId === 'null')
+    moveAfterPicId = null
+  await db.movePic(picOrderId, picToMoveId, moveAfterPicId)
+  res.end()
+})
+
 module.exports = router

@@ -3,7 +3,8 @@ let db = require('@db')
 module.exports = {
     getPics,
     getPicOrders,
-    insertPic
+    insertPic,
+    movePic
 }
 
 async function getPicOrders () {
@@ -34,4 +35,12 @@ async function insertPic (extension, source, sourceShort, description, notes) {
     return result[0].picId // result should return exactly one record
 }
 
-
+async function movePic (picOrderId, picToMoveId, moveAfterPicId) {
+    await db.execute(`
+        exec dbo.picOrderItem_move
+            \@picOrderId = @picOrderId,
+            \@picToMoveId = @picToMoveId,
+            \@moveAfterPicId = @moveAfterPicId
+        `, {picOrderId, picToMoveId, moveAfterPicId}
+    )
+}

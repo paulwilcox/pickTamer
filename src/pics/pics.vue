@@ -76,7 +76,7 @@
           </select>
         </h2>
 
-        <div v-if="!this.pickOrdersAreSame()">
+        <div v-if="this.showOtherImageList()">
           <table v-for="item in otherImageList" class="imgTable">
             <tr>
               <td></td>
@@ -144,6 +144,7 @@ export default {
 
       let json = await response.json()
       let parsedList = JSON.parse(json)
+      parsedList.picOrderId = picOrderId
 
       // todo: unselect may be more drastic than necessary in many cases
       if (list === this.imageList) 
@@ -166,7 +167,7 @@ export default {
     async selectImage(item) {
       this.selectedItem = item === this.selectedItem ? null : item
     },
-    moveSelected(targetItem, targetSourceList) {
+    async moveSelected(targetItem, targetSourceList) {
       
       let targetIndex = 
         !targetItem 
@@ -176,6 +177,8 @@ export default {
       let existingIndex =
         targetSourceList
         .findIndex(item => item.picId == this.selectedItem.picId)
+
+      /* presentation move */
 
       if (existingIndex >= 0) {
         let removed = targetSourceList.splice(existingIndex,1)[0]
@@ -188,11 +191,28 @@ export default {
       else 
         targetSourceList.splice(targetIndex, 0, this.selectedItem)
 
+      /* database move */
+
+      let picOrderId = targetSourceList.picOrderId
+      let picId = targetSourceList[targetIndex].picId
+      let insertAfterPicId = targetIndex == 0 
+        ? null 
+        : targetSourceList[targetIndex - 1].picId
+      
+      // todo: actually load into the db
+      let response = await fetch(
+          `http://localhost:3000/pics/movePic` + 
+          `?picOrderId=${picOrderId}` + 
+          `&picToMoveId=${picId}` + 
+          `&moveAfterPicId=${insertAfterPicId}`
+      )
+      if (!response.ok) 
+        throw `error moving pic`      
     },
-    pickOrdersAreSame() {
+    showOtherImageList() {
       let pickOrderId = document.querySelector('#ddPicOrder')?.value
       let otherPickOrderId = document.querySelector('#ddOtherPicOrder')?.value
-      return pickOrderId == otherPickOrderId;
+      return pickOrderId != otherPickOrderId && otherPickOrderId !== ''
     }
   },
   async mounted() {
