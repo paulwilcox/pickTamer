@@ -23,19 +23,19 @@ begin try
 	values (@extension, @description, @notes)
 
 	declare @insertedPicId int = (select picId from @insertedPicTable)
-	declare @defaultPicOrderId int = (select picOrderId from dbo.picOrder where isDefault = 1)
-	declare @tailPicOrderItemId int = (select picOrderItemId from dbo.picOrderItem where picOrderId = @defaultPicOrderId)
+	declare @defaultClusterId int = (select clusterId from dbo.cluster where isDefault = 1)
+	declare @tailClusterItemId int = (select clusterPicId from dbo.clusterPic where clusterId = @defaultClusterId)
 
-	insert dbo.picOrderItem (picId, picOrderId, previousPicId)
+	insert dbo.clusterPic (picId, clusterId, previousPicId)
 	values (
 		@insertedPicId,
-		@defaultPicOrderId,
-		@tailPicOrderItemId
+		@defaultClusterId,
+		@tailClusterItemId
 	)
 
-	update dbo.picOrderItem
+	update dbo.clusterPic
 	set nextPicId = @insertedPicId
-	where picOrderItemId = @tailPicOrderItemId 
+	where clusterPicId = @tailClusterItemId 
 
 	insert dbo.picSource (picId, source, sourceShort)
 	values (@insertedPicId, @source, @sourceShort)

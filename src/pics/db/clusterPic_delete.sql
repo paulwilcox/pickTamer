@@ -1,6 +1,6 @@
  
-create or alter procedure dbo.picOrderItem_delete 
-	@picOrderId int, 
+create or alter procedure dbo.clusterPic_delete 
+	@clusterId int, 
 	@picId int
 as 
 
@@ -11,26 +11,26 @@ begin try
 	-- Lookahead (to identify), then look back twice (to relink)
 	update nextPoi 
 		set nextPoi.previousPicId = poiToMove.previousPicId
-	from dbo.picOrderItem nextPoi
-	join dbo.picOrderItem poiToMove 
-		on poiToMove.picOrderId = nextPoi.picOrderId
+	from dbo.clusterPic nextPoi
+	join dbo.clusterPic poiToMove 
+		on poiToMove.clusterId = nextPoi.clusterId
 		and poiToMove.nextPicId = nextPoi.picId
-	where poiToMove.picOrderId = @picOrderId
+	where poiToMove.clusterId = @clusterId
 		and poiToMove.picId = @picId
 
 	-- If pic already exists, we have to link the previous pic with the (newly) next one.
 	-- Lookbehind (to identify), then look ahead twice (to relink)
 	update prevPoi
 		set prevPoi.nextPicId = poiToMove.nextPicId
-	from dbo.picOrderItem prevPoi
-	join dbo.picOrderItem poiToMove 
-		on poiToMove.picOrderId = prevPoi.picOrderId
+	from dbo.clusterPic prevPoi
+	join dbo.clusterPic poiToMove 
+		on poiToMove.clusterId = prevPoi.clusterId
 		and poiToMove.previousPicId = prevPoi.picId
-	where poiToMove.picOrderId = @picOrderId
+	where poiToMove.clusterId = @clusterId
 		and poiToMove.picId = @picId
 
-	delete dbo.picOrderItem
-	where picOrderId = @picOrderId
+	delete dbo.clusterPic
+	where clusterId = @clusterId
 		and picId = @picId
 
 	commit

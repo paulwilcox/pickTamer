@@ -16,13 +16,13 @@
     <div>
 
       <div class="picListContainer">
-        <h2>picOrder:
-          <select id="ddPicOrder" @change="getPics($event.target.value, mainPicList)">
+        <h2>cluster:
+          <select id="ddCluster" @change="getPics($event.target.value, mainPicList)">
             <option value="" disabled selected>choose</option>            
-            <option v-for="picOrder in picOrderList" 
-              :value="picOrder.picOrderId"
+            <option v-for="cluster in clusterList" 
+              :value="cluster.clusterId"
             >
-              {{picOrder.orderName}}
+              {{cluster.clusterName}}
             </option>
           </select>
         </h2>
@@ -78,13 +78,13 @@
 
       <div class="picListContainer">
 
-        <h2>Other picOrder:
-          <select id="ddOtherPicOrder" @change="getPics($event.target.value, otherPicList)">
+        <h2>Other cluster:
+          <select id="ddOtherCluster" @change="getPics($event.target.value, otherPicList)">
             <option value="" disabled selected>choose</option>            
-            <option v-for="picOrder in picOrderList" 
-              :value="picOrder.picOrderId"
+            <option v-for="cluster in clusterList" 
+              :value="cluster.clusterId"
             >
-              {{picOrder.orderName}}
+              {{cluster.clusterName}}
             </option>
           </select>
         </h2>
@@ -150,7 +150,7 @@
 export default {
   data() {
     return {
-      picOrderList: [],
+      clusterList: [],
       mainPicList: [], 
       otherPicList: [], 
       selectedPic: null,
@@ -158,20 +158,20 @@ export default {
     };
   },
   methods: {
-    async getPics(picOrderId, list) {
+    async getPics(clusterId, list) {
 
       if (list !== this.mainPicList && list !== this.otherPicList)
         throw 'list is null or of unexpected value'
 
       let response = await fetch(
-        `http://localhost:3000/pics?picOrderId=${picOrderId}`
+        `http://localhost:3000/pics?clusterId=${clusterId}`
       )
       if (!response.ok) 
         throw `error fetching pics`
 
       let json = await response.json()
       let parsedList = JSON.parse(json)
-      parsedList.picOrderId = picOrderId
+      parsedList.clusterId = clusterId
 
       // todo: unselect may be more drastic than necessary in many cases
       if (list === this.mainPicList) 
@@ -180,12 +180,12 @@ export default {
         this.otherPicList = parsedList
 
     },
-    async getPicOrders() {
-      let response = await fetch('http://localhost:3000/pics/picOrders')
+    async getClusters() {
+      let response = await fetch('http://localhost:3000/pics/clusters')
       if (!response.ok) 
-        throw `error fetching picOrders`
+        throw `error fetching clusters`
       let json = await response.json()
-      this.picOrderList = JSON.parse(json)
+      this.clusterList = JSON.parse(json)
     },
     getPicUrl(pic) {
       let fileName = `${pic.picId}.${pic.extension}`
@@ -231,20 +231,20 @@ export default {
 
       /* database move */
 
-      let picOrderId = targetList.picOrderId
+      let clusterId = targetList.clusterId
       let picId = targetList[targetIndex].picId
       let picToMoveAfterId = targetIndex == 0 
         ? null 
         : targetList[targetIndex - 1].picId
       
       let response = await fetch(
-          `http://localhost:3000/pics/upsertPicOrderItem` + 
-          `?picOrderId=${picOrderId}` + 
+          `http://localhost:3000/pics/upsertClusterPic` + 
+          `?clusterId=${clusterId}` + 
           `&picId=${picId}` + 
           `&picToMoveAfterId=${picToMoveAfterId}`
       )
       if (!response.ok) 
-        throw `error upserting picOrderItem` 
+        throw `error upserting clusterPic` 
 
       if (
         deleteFromSource && 
@@ -258,21 +258,21 @@ export default {
       let index = list.findIndex(listItem => listItem.picId == pic.picId)
       list.splice(index,1) 
       let response = await fetch(
-          `http://localhost:3000/pics/deletePicOrderItem` + 
-          `?picOrderId=${list.picOrderId}` + 
+          `http://localhost:3000/pics/deleteClusterPic` + 
+          `?clusterId=${list.clusterId}` + 
           `&picId=${pic.picId}`
       )
       if (!response.ok) 
         throw `error deleting pic` 
     },
     showOtherPicList() {
-      let picOrderId = this.mainPicList.picOrderId
-      let otherPicOrderId = this.otherPicList.picOrderId
-      return picOrderId != otherPicOrderId && otherPicOrderId >= 0
+      let clusterId = this.mainPicList.clusterId
+      let otherClusterId = this.otherPicList.clusterId
+      return clusterId != otherClusterId && otherClusterId >= 0
     }
   },
   async mounted() {
-    await this.getPicOrders()
+    await this.getClusters()
   },
   beforeDestroy() {
     // to prevent memory leaks

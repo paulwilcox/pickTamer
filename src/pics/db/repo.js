@@ -1,23 +1,23 @@
 let db = require('@db')
 
 module.exports = {
-    getPics,
-    getPicOrders,
+    getClusterPics,
+    getClusters,
     insertPic,
-    upsertPicOrderItem,
-    deletePicOrderItem
+    upsertClusterPic,
+    deleteClusterPic
 }
 
-async function getPicOrders () {
-    return await db.query(`exec dbo.picOrder_list`)
+async function getClusters () {
+    return await db.query(`exec dbo.cluster_list`)
 }
 
-async function getPics (picOrderId = null) {
+async function getClusterPics (clusterId = null) {
     return await db.query(`
-        exec dbo.picOrderItem_list
-            \@picOrderId = @picOrderId
+        exec dbo.clusterPic_list
+            \@clusterId = @clusterId
         `,
-        { picOrderId: picOrderId === null ? null : parseInt(picOrderId) }
+        { clusterId }
     )
 }
 
@@ -36,21 +36,21 @@ async function insertPic (extension, source, sourceShort, description, notes) {
     return result[0].picId // result should return exactly one record
 }
 
-async function upsertPicOrderItem (picOrderId, picId, picToMoveAfterId) {
+async function upsertClusterPic (clusterId, picId, picToMoveAfterId) {
     await db.execute(`
-        exec dbo.picOrderItem_upsert
-            \@picOrderId = @picOrderId,
+        exec dbo.clusterPic_upsert
+            \@clusterId = @clusterId,
             \@picId = @picId,
             \@picToMoveAfterId = @picToMoveAfterId
-        `, { picOrderId, picId, picToMoveAfterId }
+        `, { clusterId, picId, picToMoveAfterId }
     )
 }
 
-async function deletePicOrderItem (picOrderId, picId) {
+async function deleteClusterPic (clusterId, picId) {
     await db.execute(`
-        exec dbo.picOrderItem_delete
-            \@picOrderId = @picOrderId,
+        exec dbo.clusterPic_delete
+            \@clusterId = @clusterId,
             \@picId = @picId
         `,
-        { picOrderId, picId })
+        { clusterId, picId })
 }
