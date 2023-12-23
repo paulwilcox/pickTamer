@@ -89,11 +89,6 @@ export default {
 </script>
 <style>
 
-  div {
-    margin: 2px;
-    padding: 2px;
-  }
-
   .table {
     display: table;
   }

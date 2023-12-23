@@ -14,6 +14,11 @@ router.get('/loadNewPics', async (req,res) => {
   let responseMessage = null
 
   let files = await fs.readdir(newFilesPath)
+  files = files.filter(file => {
+    let extension = path.extname(file).slice(1)
+    let allowedExtensions = ['jpg','jpeg']
+    return allowedExtensions.includes(extension)
+  })
 
   if (files.length === 0) {
       responseMessage = `No pics to insert`
