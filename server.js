@@ -3,6 +3,7 @@ require('module-alias/register')
 let homeRouter = require('./src/home/expRouter.js')
 let picsRouter = require('./src/pics/expRouter.js')
 let picsController = require('./src/pics/controller.js')
+let clustersRouter = require('./src/clusters/expRouter.js')
 let imagesDirectory = 'p:\\picsToTame'
 
 picsController.loadNewImages(imagesDirectory)
@@ -15,14 +16,10 @@ app.use((req, res, next) => {
     next();
 })
 
-app.use('/', homeRouter);
-app.use('/home', homeRouter);
-app.use('/pics', picsRouter);
-
-app.get('/image', (req, res) => {
-    let imagePath = imagesDirectory + '//' + req.query.fileName
-    res.sendFile(imagePath)
-});
+app.use('/', homeRouter)
+app.use('/home', homeRouter)
+app.use('/pics', picsRouter)
+app.use('/clusters', clustersRouter)
 
 app.listen(3000, () => console.log('server started: http://localhost:3000'));
 

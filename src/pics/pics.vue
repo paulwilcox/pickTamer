@@ -27,7 +27,7 @@
           </select>
         </div>
 
-        <div class="picTableDiv">
+        <div class="picTablesDiv">
           <table v-for="pic in mainPicList" class="picTable">
             <tr>
               <td></td>
@@ -50,7 +50,7 @@
             <tr>
               <td></td>
               <td>
-                <div v-if="selectedPic">
+                <div v-if="selectedPic" style="text-align: right;">
                   <button @click="moveSelected(pic, mainPicList, true)" class="linkButton">
                     move-here
                   </button>
@@ -91,7 +91,7 @@
           </select>
         </div>
 
-        <div v-if="this.showOtherPicList()">
+        <div v-if="this.showOtherPicList()" class="picTablesDiv">
           <table v-for="pic in otherPicList" class="picTable">
             <tr>
               <td></td>
@@ -183,7 +183,7 @@ export default {
 
     },
     async getClusters() {
-      let response = await fetch('http://localhost:3000/pics/clusters')
+      let response = await fetch('http://localhost:3000/clusters')
       if (!response.ok) 
         throw `error fetching clusters`
       let json = await response.json()
@@ -191,7 +191,7 @@ export default {
     },
     getPicUrl(pic) {
       let fileName = `${pic.picId}.${pic.extension}`
-      return `http://localhost:3000/image?fileName=${fileName}`
+      return `http://localhost:3000/pics/getFile?fileName=${fileName}`
     },
     async selectPic(pic, picList) {
       if (pic === this.selectedPic) {
@@ -298,14 +298,14 @@ export default {
   #mainListDiv { background-color: #f4fdf4; }
   #mainListDiv::-webkit-scrollbar { background-color: #f4fdf4 }
   #mainListDiv::-webkit-scrollbar-thumb { background-color: #00cc0022; }
-  #mainListDiv .header { background-color: rgba(150, 255, 0, 0.25); }
+  #mainListDiv .header { background-color: #00cc0022; }
 
   #otherListDiv { background-color: #f6cccb; }
   #otherListDiv::-webkit-scrollbar { background-color: rgb(228, 170, 184) }
   #otherListDiv::-webkit-scrollbar-thumb { background-color: rgba(255, 0, 0, 0.71); }
-  #otherListDiv .header { background-color: rgba(255, 200, 0, 0.25); }
+  #otherListDiv .header { background-color: rgba(255, 0, 0, 0.71); }
 
-  .picTableDiv {
+  .picTablesDiv {
     display: flex;
     flex-wrap: wrap; /* Allow items to wrap to the next line */
     align-items: flex-start;
@@ -341,7 +341,7 @@ export default {
   }  
 
   table {
-    border: 1px solid red;
+    border: 1px solid darkgreen;
   }
 
 </style>

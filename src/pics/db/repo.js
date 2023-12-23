@@ -2,14 +2,9 @@ let db = require('@db')
 
 module.exports = {
     getClusterPics,
-    getClusters,
     insertPic,
     upsertClusterPic,
     deleteClusterPic
-}
-
-async function getClusters () {
-    return await db.query(`exec dbo.cluster_list`)
 }
 
 async function getClusterPics (clusterId = null) {

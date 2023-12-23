@@ -1,17 +1,13 @@
 let express = require('express')
 let router = express.Router()
 let db = require('./db/repo.js')
+db.cluster = require('../clusters/db/repo.js')
+let imagesDirectory = 'p:\\picsToTame'
 
 router.get('/', async (req, res) => {
   let clusterId = req.query.clusterId || null
   let pics = await db.getClusterPics(clusterId)
   let json = JSON.stringify(pics)
-  res.json(json)
-})
-
-router.get('/clusters', async (req, res) => {
-  let clusters = await db.getClusters()
-  let json = JSON.stringify(clusters)
   res.json(json)
 })
 
@@ -31,5 +27,10 @@ router.get('/deleteClusterPic', async (req, res) => {
   await db.deleteClusterPic(clusterId, picId)
   res.end()
 })
+
+router.get('/getFile', (req, res) => {
+  let imagePath = imagesDirectory + '//' + req.query.fileName
+  res.sendFile(imagePath)
+});
 
 module.exports = router
