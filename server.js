@@ -2,11 +2,7 @@ let express = require('express')
 require('module-alias/register')
 let homeRouter = require('./src/home/expRouter.js')
 let picsRouter = require('./src/pics/expRouter.js')
-let picsController = require('./src/pics/controller.js')
 let clustersRouter = require('./src/clusters/expRouter.js')
-let imagesDirectory = 'p:\\picsToTame'
-
-picsController.loadNewImages(imagesDirectory)
 
 let app = express()
 

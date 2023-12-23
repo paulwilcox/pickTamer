@@ -1,5 +1,37 @@
 <template>
   <main>
-    This is the content for the home page.
+    <div>
+      Welcome
+    </div>
+    <div>
+      <button @click="loadNewPics()">load new pics</button>
+      <div style="color:orange;">{{ loadNewPicsMessage }}</div>
+    </div>
   </main>
 </template>
+<script>
+export default {
+  data() { 
+    return {
+      loadNewPicsMessage: null
+    }
+  },
+  methods: {
+    async loadNewPics() {
+      let response = await fetch(`http://localhost:3000/loadNewPics`)
+      if (!response.ok) {
+        this.loadNewPicsMessage = 'failed to fetch while loading new pics'
+        return
+      }
+      let json = await response.json()
+      let parsed = JSON.parse(json)
+      this.loadNewPicsMessage = parsed
+    }
+  }
+}
+</script>
+<style>
+  div {
+    margin-top: 15px;
+  }
+</style>

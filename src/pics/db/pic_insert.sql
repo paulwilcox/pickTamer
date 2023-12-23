@@ -24,18 +24,24 @@ begin try
 
 	declare @insertedPicId int = (select picId from @insertedPicTable)
 	declare @defaultClusterId int = (select clusterId from dbo.cluster where isDefault = 1)
-	declare @tailClusterItemId int = (select clusterPicId from dbo.clusterPic where clusterId = @defaultClusterId)
+	declare @tailPicId int = (
+		select picId 
+		from dbo.clusterPic 
+		where clusterId = @defaultClusterId
+		and nextPicId is null 
+	)
 
 	insert dbo.clusterPic (picId, clusterId, previousPicId)
 	values (
 		@insertedPicId,
 		@defaultClusterId,
-		@tailClusterItemId
+		@tailPicId
 	)
 
 	update dbo.clusterPic
 	set nextPicId = @insertedPicId
-	where clusterPicId = @tailClusterItemId 
+	where clusterId = @defaultClusterId
+		and picId = @tailPicId 
 
 	insert dbo.picSource (picId, source, sourceShort)
 	values (@insertedPicId, @source, @sourceShort)

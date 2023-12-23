@@ -2,7 +2,7 @@ let express = require('express')
 let router = express.Router()
 let db = require('./db/repo.js')
 db.cluster = require('../clusters/db/repo.js')
-let imagesDirectory = 'p:\\picsToTame'
+let config = require('@configJson')
 
 router.get('/', async (req, res) => {
   let clusterId = req.query.clusterId || null
@@ -29,7 +29,7 @@ router.get('/deleteClusterPic', async (req, res) => {
 })
 
 router.get('/getFile', (req, res) => {
-  let imagePath = imagesDirectory + '//' + req.query.fileName
+  let imagePath = config.picTamerFileRoot + '//' + req.query.fileName
   res.sendFile(imagePath)
 });
 

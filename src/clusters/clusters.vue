@@ -1,7 +1,7 @@
 <template>
   <main>
 
-    <div>
+    <div class="table">
       <div class="row" v-for="rowCluster in clusterList">
         <div class="col">
           <input :placeholder="rowCluster.clusterName" v-model="rowCluster.clusterName" v-bind:disabled="cluster !== rowCluster"/>
@@ -89,13 +89,21 @@ export default {
 </script>
 <style>
 
+  div {
+    margin: 2px;
+    padding: 2px;
+  }
+
+  .table {
+    display: table;
+  }
+
   .row {
-    display: flex;
-    justify-content: space-between;
+    display: table-row;
   }
 
   .col {
-    flex: 1;
+    display: table-cell;
   }
 
 </style>
