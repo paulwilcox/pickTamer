@@ -2,7 +2,8 @@ let db = require('@db')
 
 module.exports = {
     getClusters,
-    updateCluster
+    updateCluster,
+    insertCluster
 }
 
 async function getClusters () {
@@ -16,5 +17,14 @@ async function updateCluster(clusterId, clusterName) {
             \@clusterName = @clusterName
       `,
       { clusterId, clusterName }
+    )
+}
+
+async function insertCluster(clusterName) {
+    return await db.execute(`
+      exec dbo.cluster_insert 
+        \@clusterName = @clusterName
+      `,
+      { clusterName }
     )
 }

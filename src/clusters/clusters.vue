@@ -20,6 +20,11 @@
       </div>
     </div>    
 
+    <div v-if="cluster===null" style="margin-top: 20px;">
+      create: <input v-model="newClusterName"/>
+      <button v-if="newClusterName!==null" @click="insertCluster()">add</button>
+    </div>
+
   </main>
 </template>
 <script>
@@ -27,7 +32,8 @@ export default {
   data() {
     return {
       cluster: null,
-      clusterList: []
+      clusterList: [],
+      newClusterName: null
     }
   },
   methods: {
@@ -53,6 +59,27 @@ export default {
       if (!response.ok)
         throw 'failure updating cluster'
       this.cluster = null
+    },
+    async insertCluster() {
+      
+      this.cluster = null
+      this.newClusterName = this.newClusterName.toLowerCase()
+      
+      if (this.clusterList.some(row => 
+        row.clusterName === this.newClusterName
+      ))
+        throw 'Cannot insert, that name already exists'
+      
+      let response = await fetch(
+        `http://localhost:3000/clusters/insertCluster` +
+        `?clusterName=${this.newClusterName}`
+      )
+      if (!response.ok)
+        throw 'failure updating cluster'
+
+      this.newClusterName = null
+      this.getClusters()
+
     }
   },
   async mounted() {

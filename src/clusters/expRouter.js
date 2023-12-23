@@ -15,4 +15,10 @@ router.get('/updateCluster', async (req, res) => {
   res.end()
 })
 
+router.get('/insertCluster', async (req, res) => {
+  let clusterName = req.query.clusterName
+  await db.insertCluster(clusterName)
+  res.end()
+})
+
 module.exports = router
