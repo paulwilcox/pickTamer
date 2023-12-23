@@ -1,22 +1,22 @@
 <template>
   <main>
 
-    <h2>Selected:</h2>
+    <div style="height:80%;">
 
-    <div v-if="this.selectedPic">
-      <img
-        :src="getPicUrl(this.selectedPic)"
-        :alt="`picId-${this.selectedPic.picId}`"
-        style="max-height: 500px;"
-      >
-    </div>
+      <div id="selectedPicDiv" class="picListContainer" style='width:45%;'>
+        <div class="header">selected</div>
 
-    <hr/>
+        <div v-if="this.selectedPic">
+          <img
+            :src="getPicUrl(this.selectedPic)"
+            :alt="`picId-${this.selectedPic.picId}`"
+            style="max-width:100%;"
+          >
+        </div>
+      </div>
 
-    <div>
-
-      <div class="picListContainer">
-        <h2>cluster:
+      <div id="mainListDiv" class="picListContainer" style='width:35%'>
+        <div class="header">cluster
           <select id="ddCluster" @change="getPics($event.target.value, mainPicList)">
             <option value="" disabled selected>choose</option>            
             <option v-for="cluster in clusterList" 
@@ -25,60 +25,62 @@
               {{cluster.clusterName}}
             </option>
           </select>
-        </h2>
+        </div>
 
-        <table v-for="pic in mainPicList" class="picTable">
-          <tr>
-            <td></td>
-            <td>
-              <div v-if="selectedPic">
-                <button @click="deletePic(pic, mainPicList)">
-                  delete
-                </button>
-                <button @click="moveSelected(pic, mainPicList, true)">
-                  move here
-                </button>
-                <button v-if="selectedPicList !== mainPicList" @click="moveSelected(pic, mainPicList, false)">
-                  copy here
-                </button>
-              </div>
-            </td>
-            <td></td>
-          </tr>
-          <tr>
-            <td></td>
-            <td>
-              <img
-                :src="getPicUrl(pic)"
-                :alt="`pic-${pic.picId}`"
-                @click="selectPic(pic, mainPicList)"
-                :class="{ selected: selectedPic && pic && selectedPic.picId === pic.picId }"
-                style="max-width: 150px;"
-              >
-            </td>
-            <td></td>
-          </tr>
-          <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-          </tr>
-        </table>
+        <div class="picTableDiv">
+          <table v-for="pic in mainPicList" class="picTable">
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td>
+                <img
+                  :src="getPicUrl(pic)"
+                  :alt="`pic-${pic.picId}`"
+                  @click="selectPic(pic, mainPicList)"
+                  :class="{ selected: selectedPic && pic && selectedPic.picId === pic.picId }"
+                  style="max-width: 150px;"
+                />
+              </td>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td>
+                <div v-if="selectedPic">
+                  <button @click="moveSelected(pic, mainPicList, true)" class="linkButton">
+                    move-here
+                  </button>
+                  <button v-if="selectedPicList !== mainPicList" @click="moveSelected(pic, mainPicList, false)" class="linkButton">
+                    copy-here
+                  </button>
+                  <button @click="deletePic(pic, mainPicList)" class="linkButton">
+                    x
+                  </button>
+                </div>
+              </td>
+              <td></td>
+            </tr>
+          </table>
+        </div>
 
         <div v-if="selectedPic">
-          <button @click="moveSelected(null, mainPicList, true)">
+          <button @click="moveSelected(null, mainPicList, true)" class="linkButton">
             move here
           </button>
-          <button @click="moveSelected(null, mainPicList, false)">
+          <button @click="moveSelected(null, mainPicList, false)" class="linkButton">
             copy here
           </button>
         </div>
 
       </div>
 
-      <div class="picListContainer">
+      <div id="otherListDiv" class="picListContainer" style='width:20%'>
 
-        <h2>Other cluster:
+        <div class="header">compare
           <select id="ddOtherCluster" @change="getPics($event.target.value, otherPicList)">
             <option value="" disabled selected>choose</option>            
             <option v-for="cluster in clusterList" 
@@ -87,25 +89,13 @@
               {{cluster.clusterName}}
             </option>
           </select>
-        </h2>
+        </div>
 
         <div v-if="this.showOtherPicList()">
           <table v-for="pic in otherPicList" class="picTable">
             <tr>
               <td></td>
-              <td>
-                <div v-if="selectedPic">
-                  <button @click="deletePic(pic, otherPicList)">
-                    delete
-                  </button>
-                  <button @click="moveSelected(pic, otherPicList, true)">
-                    move here
-                  </button>
-                  <button v-if="selectedPicList !== otherPicList" @click="moveSelected(pic, otherPicList, false)">
-                    copy here
-                  </button>
-                </div>
-              </td>
+              <td></td>
               <td></td>
             </tr>
             <tr>
@@ -117,22 +107,34 @@
                   @click="selectPic(pic, mainPicList)"
                   :class="{ selected: selectedPic && pic && selectedPic.picId === pic.picId }"
                   style="max-width: 150px;"
-                >
+                />
               </td>
               <td></td>
             </tr>
             <tr>
               <td></td>
-              <td></td>
+              <td>
+                <div v-if="selectedPic">
+                  <button @click="moveSelected(pic, otherPicList, true)" class="linkButton">
+                    move-here
+                  </button>
+                  <button v-if="selectedPicList !== otherPicList" @click="moveSelected(pic, otherPicList, false)" class="linkButton">
+                    copy-here
+                  </button>
+                  <button @click="deletePic(pic, otherPicList)" class="linkButton">
+                    x
+                  </button>
+                </div>
+              </td>
               <td></td>
             </tr>
           </table>
 
           <div v-if="selectedPic">
-            <button @click="moveSelected(null, otherPicList, true)">
+            <button @click="moveSelected(null, otherPicList, true)" class="linkButton">
               move here
             </button>
-            <button @click="moveSelected(null, otherPicList, false)">
+            <button @click="moveSelected(null, otherPicList, false)" class="linkButton">
               copy here
             </button>            
           </div>  
@@ -233,7 +235,7 @@ export default {
 
       let clusterId = targetList.clusterId
       let picId = targetList[targetIndex].picId
-      let picToMoveAfterId = targetIndex == 0 
+      let picToMoveBeforeId = targetIndex == 0 
         ? null 
         : targetList[targetIndex - 1].picId
       
@@ -241,7 +243,7 @@ export default {
           `http://localhost:3000/pics/upsertClusterPic` + 
           `?clusterId=${clusterId}` + 
           `&picId=${picId}` + 
-          `&picToMoveAfterId=${picToMoveAfterId}`
+          `&picToMoveBeforeId=${picToMoveBeforeId}`
       )
       if (!response.ok) 
         throw `error upserting clusterPic` 
@@ -285,25 +287,61 @@ export default {
 
   .picListContainer {
     height: 600px;
-    border: 1px solid green;
     overflow: auto;
-    width: 50%; 
     float: left;    
+    border: 1px solid green;
+    padding: 10px;
+  }
+
+  #selectedPicDiv .header { background-color: rgba(63, 63, 63, 0.25); }
+
+  #mainListDiv { background-color: #f4fdf4; }
+  #mainListDiv::-webkit-scrollbar { background-color: #f4fdf4 }
+  #mainListDiv::-webkit-scrollbar-thumb { background-color: #00cc0022; }
+  #mainListDiv .header { background-color: rgba(150, 255, 0, 0.25); }
+
+  #otherListDiv { background-color: #f6cccb; }
+  #otherListDiv::-webkit-scrollbar { background-color: rgb(228, 170, 184) }
+  #otherListDiv::-webkit-scrollbar-thumb { background-color: rgba(255, 0, 0, 0.71); }
+  #otherListDiv .header { background-color: rgba(255, 200, 0, 0.25); }
+
+  .picTableDiv {
+    display: flex;
+    flex-wrap: wrap; /* Allow items to wrap to the next line */
+    align-items: flex-start;
   }
 
   .picTable {
     display: inline-block;
-  }
-
-  .picTable td {
-    border: solid 1px red;
-    width: 25px;
-    height: 25px;
-    margin: 10px;
+    border-collapse: collapse;
+    border-color: 1px solid black;
   }
 
   .selected {
     border: 2px solid blue;
+  }
+
+  .header {
+    font-size: medium;
+    border:1px solid rgb(151, 158, 158);
+    padding: 5px;
+    margin-bottom: 5px;
+  }
+
+  .linkButton {
+    background: none;
+    border: none;
+    color: #007bff; /* Set the color to the link color you want */
+    cursor: pointer;
+    padding-right: 5px;
+    font: inherit;
+    font-size: small;
+    vertical-align: middle;
+    text-align: center;
+  }  
+
+  table {
+    border: 1px solid red;
   }
 
 </style>

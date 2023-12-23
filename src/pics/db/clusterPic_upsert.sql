@@ -1,19 +1,19 @@
 create or alter procedure dbo.clusterPic_upsert
 	@clusterId int = 1,
     @picId int = 15,
-	@picToMoveAfterId int = 9
+	@picToMoveBeforeId int = 9
 as
 
 declare @msg nvarchar(max)
 
-if @picToMoveAfterId is not null and not exists (
+if @picToMoveBeforeId is not null and not exists (
 	select 0 
 	from dbo.clusterPic 
 	where clusterId = @clusterId
-	and picId = @picToMoveAfterId
+	and picId = @picToMoveBeforeId
 ) begin
 	set @msg = concat(
-		'@picToMoveAfterId = ', @picToMoveAfterId, ' ',
+		'@picToMoveBeforeId = ', @picToMoveBeforeId, ' ',
 		'not found for @clusterId = ', @clusterId
 	)
 	; throw 50000, @msg, 1
@@ -41,17 +41,17 @@ begin try
 		
 	-- GIVE THE RECORD IT'S NEW PLACEMENT
 
-	declare @picToMoveBeforeId int 
-	if @picToMoveAfterId is not null
-		select @picToMoveBeforeId = prevPoi.nextPicId
-		from dbo.clusterPic prevPoi
-		where prevPoi.clusterId = @clusterId
-			and prevPoi.picId = @picToMoveAfterId
-	else -- select the first picId (if not the new one you just inserted)
-		select @picToMoveBeforeId = picId
+	declare @picToMoveAfterId int 
+	if @picToMoveBeforeId is not null
+		select @picToMoveAfterId = nextPoi.previousPicId
+		from dbo.clusterPic nextPoi
+		where nextPoi.clusterId = @clusterId
+			and nextPoi.picId = @picToMoveBeforeId
+	else -- select the last picId (if not the new one you just inserted)
+		select @picToMoveAfterId = picId
 		from dbo.clusterPic as poi
 		where poi.clusterId = @clusterId
-			and poi.previousPicId is null
+			and poi.nextPicId is null
 			and poi.picId <> @picId
 		
 	update dbo.clusterPic 
@@ -77,4 +77,3 @@ begin catch
 	rollback
 	;throw
 end catch
-

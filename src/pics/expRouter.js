@@ -18,10 +18,10 @@ router.get('/clusters', async (req, res) => {
 router.get('/upsertClusterPic', async (req, res) => {
   let clusterId = req.query.clusterId
   let picId = req.query.picId
-  let picToMoveAfterId = req.query.picToMoveAfterId
-  if (picToMoveAfterId === 'null')
-    picToMoveAfterId = null
-  await db.upsertClusterPic(clusterId, picId, picToMoveAfterId)
+  let picToMoveBeforeId = req.query.picToMoveBeforeId
+  if (picToMoveBeforeId === 'null')
+    picToMoveBeforeId = null
+  await db.upsertClusterPic(clusterId, picId, picToMoveBeforeId)
   res.end()
 })
 

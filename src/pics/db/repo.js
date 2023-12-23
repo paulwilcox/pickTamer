@@ -36,13 +36,13 @@ async function insertPic (extension, source, sourceShort, description, notes) {
     return result[0].picId // result should return exactly one record
 }
 
-async function upsertClusterPic (clusterId, picId, picToMoveAfterId) {
+async function upsertClusterPic (clusterId, picId, picToMoveBeforeId) {
     await db.execute(`
         exec dbo.clusterPic_upsert
             \@clusterId = @clusterId,
             \@picId = @picId,
-            \@picToMoveAfterId = @picToMoveAfterId
-        `, { clusterId, picId, picToMoveAfterId }
+            \@picToMoveBeforeId = @picToMoveBeforeId
+        `, { clusterId, picId, picToMoveBeforeId }
     )
 }
 
