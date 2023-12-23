@@ -31,9 +31,17 @@
           <tr>
             <td></td>
             <td>
-              <button v-if="selectedItem" @click="moveSelected(item, imageList)">
-                move here
-              </button>
+              <div v-if="selectedItem">
+                <button @click="deleteImage(item, imageList)">
+                  delete
+                </button>
+                <button @click="moveSelected(item, imageList, true)">
+                  move here
+                </button>
+                <button v-if="selectedList !== imageList" @click="moveSelected(item, imageList, false)">
+                  copy here
+                </button>
+              </div>
             </td>
             <td></td>
           </tr>
@@ -43,7 +51,7 @@
               <img
                 :src="getImageUrl(item)"
                 :alt="`image-ix-${item.picId}`"
-                @click="selectImage(item)"
+                @click="selectImage(item, imageList)"
                 :class="{ selected: selectedItem && item && selectedItem.picId === item.picId }"
                 style="max-width: 150px;"
               >
@@ -57,9 +65,14 @@
           </tr>
         </table>
 
-        <button v-if="selectedItem" @click="moveSelected(null, imageList)">
-          move here
-        </button>
+        <div v-if="selectedItem">
+          <button @click="moveSelected(null, imageList, true)">
+            move here
+          </button>
+          <button @click="moveSelected(null, imageList, false)">
+            copy here
+          </button>
+        </div>
 
       </div>
 
@@ -81,9 +94,17 @@
             <tr>
               <td></td>
               <td>
-                <button v-if="selectedItem" @click="moveSelected(item, otherImageList)">
-                  move here
-                </button>
+                <div v-if="selectedItem">
+                  <button @click="deleteImage(item, otherImageList)">
+                    delete
+                  </button>
+                  <button @click="moveSelected(item, otherImageList, true)">
+                    move here
+                  </button>
+                  <button v-if="selectedList !== otherImageList" @click="moveSelected(item, otherImageList, false)">
+                    copy here
+                  </button>
+                </div>
               </td>
               <td></td>
             </tr>
@@ -93,7 +114,7 @@
                 <img
                   :src="getImageUrl(item)"
                   :alt="`image-ix-${item.picId}`"
-                  @click="selectImage(item)"
+                  @click="selectImage(item, imageList)"
                   :class="{ selected: selectedItem && item && selectedItem.picId === item.picId }"
                   style="max-width: 150px;"
                 >
@@ -107,9 +128,14 @@
             </tr>
           </table>
 
-          <button v-if="selectedItem" @click="moveSelected(null, otherImageList)">
-            move here
-          </button>
+          <div v-if="selectedItem">
+            <button @click="moveSelected(null, otherImageList, true)">
+              move here
+            </button>
+            <button @click="moveSelected(null, otherImageList, false)">
+              copy here
+            </button>            
+          </div>  
 
         </div>
 
@@ -128,6 +154,7 @@ export default {
       imageList: [], 
       otherImageList: [], 
       selectedItem: null,
+      selectedList: null
     };
   },
   methods: {
@@ -164,55 +191,84 @@ export default {
       let fileName = `${imageItem.picId}.${imageItem.extension}`
       return `http://localhost:3000/image?fileName=${fileName}`
     },
-    async selectImage(item) {
-      this.selectedItem = item === this.selectedItem ? null : item
+    async selectImage(item, sourceList) {
+      if (item === this.selectedItem) {
+        this.selectedItem = null 
+        this.selectedList = null
+      }
+      else {
+        this.selectedItem = item
+        this.selectedList = sourceList
+      }
     },
-    async moveSelected(targetItem, targetSourceList) {
+    async moveSelected(
+      targetItem, 
+      targetList,
+      deleteFromSource
+    ) {
       
       let targetIndex = 
         !targetItem 
-        ? targetSourceList.length // put to end
-        : targetSourceList.findIndex(item => item.picId == targetItem.picId) 
+        ? targetList.length // put to end
+        : targetList.findIndex(item => item.picId == targetItem.picId) 
 
       let existingIndex =
-        targetSourceList
+        targetList
         .findIndex(item => item.picId == this.selectedItem.picId)
 
       /* presentation move */
 
       if (existingIndex >= 0) {
-        let removed = targetSourceList.splice(existingIndex,1)[0]
+        let removed = targetList.splice(existingIndex,1)[0]
         // when you splice out the source, indexes 
         // of all items that come after reduce by 1
         if (targetIndex > existingIndex)
           targetIndex-- 
-        targetSourceList.splice(targetIndex, 0, removed)
+        targetList.splice(targetIndex, 0, removed)
       }
       else 
-        targetSourceList.splice(targetIndex, 0, this.selectedItem)
+        targetList.splice(targetIndex, 0, this.selectedItem)
 
       /* database move */
 
-      let picOrderId = targetSourceList.picOrderId
-      let picId = targetSourceList[targetIndex].picId
-      let insertAfterPicId = targetIndex == 0 
+      let picOrderId = targetList.picOrderId
+      let picId = targetList[targetIndex].picId
+      let picToMoveAfterId = targetIndex == 0 
         ? null 
-        : targetSourceList[targetIndex - 1].picId
+        : targetList[targetIndex - 1].picId
       
-      // todo: actually load into the db
       let response = await fetch(
-          `http://localhost:3000/pics/movePic` + 
+          `http://localhost:3000/pics/upsertPicOrderItem` + 
           `?picOrderId=${picOrderId}` + 
-          `&picToMoveId=${picId}` + 
-          `&moveAfterPicId=${insertAfterPicId}`
+          `&picId=${picId}` + 
+          `&picToMoveAfterId=${picToMoveAfterId}`
       )
       if (!response.ok) 
-        throw `error moving pic`      
+        throw `error upserting picOrderItem` 
+
+      if (
+        deleteFromSource && 
+        targetItem !== this.selectedItem &&
+        targetList !== this.selectedList
+      ) 
+        this.deleteImage(this.selectedItem, this.selectedList)
+
+    },
+    async deleteImage(item, list) {
+      let index = list.findIndex(listItem => listItem.picId == item.picId)
+      list.splice(index,1) 
+      let response = await fetch(
+          `http://localhost:3000/pics/deletePicOrderItem` + 
+          `?picOrderId=${list.picOrderId}` + 
+          `&picId=${item.picId}`
+      )
+      if (!response.ok) 
+        throw `error deleting pic` 
     },
     showOtherImageList() {
-      let pickOrderId = document.querySelector('#ddPicOrder')?.value
-      let otherPickOrderId = document.querySelector('#ddOtherPicOrder')?.value
-      return pickOrderId != otherPickOrderId && otherPickOrderId !== ''
+      let pickOrderId = this.imageList.picOrderId
+      let otherPickOrderId = this.otherImageList.picOrderId
+      return pickOrderId != otherPickOrderId && otherPickOrderId >= 0
     }
   },
   async mounted() {

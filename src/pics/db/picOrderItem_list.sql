@@ -1,4 +1,4 @@
-create or alter procedure dbo.pic_list
+create or alter procedure dbo.picOrderItem_list
 	@picOrderId int
 as
 
@@ -12,6 +12,7 @@ as
 	select nxt.picOrderItemId, nxt.nextPicId, ord = prv.ord + 1
 	from ordered prv
 	join dbo.picOrderItem nxt on prv.nextPicId = nxt.picId
+	where nxt.picOrderId = @picOrderId
 )
 
 select

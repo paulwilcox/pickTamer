@@ -7,21 +7,28 @@ router.get('/', async (req, res) => {
   let pics = await db.getPics(picOrderId)
   let json = JSON.stringify(pics)
   res.json(json)
-});
+})
 
 router.get('/picOrders', async (req, res) => {
   let picOrders = await db.getPicOrders()
   let json = JSON.stringify(picOrders)
   res.json(json)
-});
+})
 
-router.get('/movePic', async (req, res) => {
+router.get('/upsertPicOrderItem', async (req, res) => {
   let picOrderId = req.query.picOrderId
-  let picToMoveId = req.query.picToMoveId
-  let moveAfterPicId = req.query.moveAfterPicId
-  if (moveAfterPicId === 'null')
-    moveAfterPicId = null
-  await db.movePic(picOrderId, picToMoveId, moveAfterPicId)
+  let picId = req.query.picId
+  let picToMoveAfterId = req.query.picToMoveAfterId
+  if (picToMoveAfterId === 'null')
+    picToMoveAfterId = null
+  await db.upsertPicOrderItem(picOrderId, picId, picToMoveAfterId)
+  res.end()
+})
+
+router.get('/deletePicOrderItem', async (req, res) => {
+  let picOrderId= req.query.picOrderId
+  let picId = req.query.picId
+  await db.deletePicOrderItem(picOrderId, picId)
   res.end()
 })
 
