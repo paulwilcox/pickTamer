@@ -202,6 +202,9 @@ export default {
         this.selectedPicList = picList
       }
     },
+    // todo: consider presentation moves only, with save later
+    // to prevent anxiety over layers being out of sync if there
+    // is ever a bug in one of them but not the other
     async moveSelected(
       targetPic, 
       targetList,
@@ -256,6 +259,7 @@ export default {
 
     },
     async deletePic(pic, list) {
+
       let index = list.findIndex(listItem => listItem.picId == pic.picId)
       list.splice(index,1) 
       let response = await fetch(
@@ -265,6 +269,7 @@ export default {
       )
       if (!response.ok) 
         throw `error deleting pic` 
+
     },
     showOtherPicList() {
       let clusterId = this.mainPicList.clusterId

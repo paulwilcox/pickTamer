@@ -52,5 +52,11 @@ async function deleteClusterPic (clusterId, picId) {
             \@clusterId = @clusterId,
             \@picId = @picId
         `,
-        { clusterId, picId })
+        { clusterId, picId }
+    )
+
+    await db.execute(
+        `exec dbo.pic_deorphan \@picId = @picId`, 
+        { picId }
+    )
 }
