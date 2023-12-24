@@ -22,7 +22,7 @@ router.get('/upsertClusterPic', async (req, res) => {
 })
 
 router.get('/deleteClusterPic', async (req, res) => {
-  let clusterId= req.query.clusterId
+  let clusterId = req.query.clusterId
   let picId = req.query.picId
   await db.deleteClusterPic(clusterId, picId)
   res.end()

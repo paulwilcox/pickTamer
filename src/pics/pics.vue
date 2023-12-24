@@ -104,7 +104,7 @@
                 <img
                   :src="getPicUrl(pic)"
                   :alt="`picId-${pic.picId}`"
-                  @click="selectPic(pic, mainPicList)"
+                  @click="selectPic(pic, otherPicList)"
                   :class="{ selected: selectedPic && pic && selectedPic.picId === pic.picId }"
                   style="max-width: 150px;"
                 />
@@ -175,7 +175,6 @@ export default {
       let parsedList = JSON.parse(json)
       parsedList.clusterId = clusterId
 
-      // todo: unselect may be more drastic than necessary in many cases
       if (list === this.mainPicList) 
         this.mainPicList = parsedList
       else 
@@ -235,9 +234,9 @@ export default {
 
       let clusterId = targetList.clusterId
       let picId = targetList[targetIndex].picId
-      let picToMoveBeforeId = targetIndex == 0 
+      let picToMoveBeforeId = targetIndex === targetList.length - 1 
         ? null 
-        : targetList[targetIndex - 1].picId
+        : targetList[targetIndex + 1].picId
       
       let response = await fetch(
           `http://localhost:3000/pics/upsertClusterPic` + 

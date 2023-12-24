@@ -1,6 +1,6 @@
 create or alter procedure dbo.clusterPic_upsert
 	@clusterId int = 1,
-    @picId int = 15,
+  @picId int = 15,
 	@picToMoveBeforeId int = 9
 as
 

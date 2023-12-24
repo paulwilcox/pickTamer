@@ -23,25 +23,12 @@ begin try
 	values (@extension, @description, @notes)
 
 	declare @insertedPicId int = (select picId from @insertedPicTable)
+	
 	declare @defaultClusterId int = (select clusterId from dbo.cluster where isDefault = 1)
-	declare @tailPicId int = (
-		select picId 
-		from dbo.clusterPic 
-		where clusterId = @defaultClusterId
-		and nextPicId is null 
-	)
-
-	insert dbo.clusterPic (picId, clusterId, previousPicId)
-	values (
-		@insertedPicId,
+	exec dbo.clusterPic_upsert
 		@defaultClusterId,
-		@tailPicId
-	)
-
-	update dbo.clusterPic
-	set nextPicId = @insertedPicId
-	where clusterId = @defaultClusterId
-		and picId = @tailPicId 
+		@insertedPicId,
+		null -- pic to move before (i.e. move to end)
 
 	insert dbo.picSource (picId, source, sourceShort)
 	values (@insertedPicId, @source, @sourceShort)

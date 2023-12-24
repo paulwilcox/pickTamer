@@ -29,6 +29,7 @@ begin try
 	where poiToMove.clusterId = @clusterId
 		and poiToMove.picId = @picId
 
+	-- do the delete
 	delete dbo.clusterPic
 	where clusterId = @clusterId
 		and picId = @picId
