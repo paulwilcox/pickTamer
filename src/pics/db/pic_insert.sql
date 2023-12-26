@@ -24,14 +24,20 @@ begin try
 
 	declare @insertedPicId int = (select picId from @insertedPicTable)
 	
-	declare @defaultClusterId int = (select clusterId from dbo.cluster where isDefault = 1)
-	exec dbo.clusterPic_upsert
-		@defaultClusterId,
-		@insertedPicId,
-		null -- pic to move before (i.e. move to end)
+	declare @defaultCluster table (clusterId int, lastClusterPicOrd int)
+	insert @defaultCluster
+	select c.clusterId, isnull(max(cp.ord),-1)
+	from dbo.cluster c
+	left join dbo.clusterPic cp on c.clusterId = cp.clusterId
+	where c.isDefault = 1
+	group by c.clusterId
 
-	insert dbo.picSource (picId, source, sourceShort)
-	values (@insertedPicId, @source, @sourceShort)
+	insert dbo.clusterPic (clusterId, picId, ord)
+	select 
+		c.clusterId, 
+		@insertedPicId,
+		c.lastClusterPicOrd + 1
+	from @defaultCluster as c
 
 	commit
 

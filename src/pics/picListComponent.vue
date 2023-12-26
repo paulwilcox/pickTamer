@@ -5,6 +5,7 @@
     <div class="header">
       <select 
         id="ddCluster"
+        :value="store.getPicList(listType).clusterId"
         :disabled="store.getChanged(listType)" 
         @change="store.loadPics(listType, $event.target.value)"
       >

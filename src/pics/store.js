@@ -185,7 +185,7 @@ export default defineStore({
       let hh = date.getHours().toString().padStart(2, '0');
       let mm = date.getMinutes().toString().padStart(2, '0');
       let ss = date.getSeconds().toString().padStart(2, '0');
-      this.$state.message += ` - done ${hh}:${mm}:${ss}`
+      this.$state.message += ` - time ${hh}:${mm}:${ss}`
 
     },
 

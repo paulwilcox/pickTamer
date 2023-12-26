@@ -18,8 +18,6 @@ async function getClusterPics (clusterId = null) {
 
 async function insertPic (extension, source, sourceShort, description, notes) {
 
-    console.log('ess', {extension,source,sourceShort,nvc: db.NVarChar})
-
     if (!description) description = null
     if (!notes) notes = null
 

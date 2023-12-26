@@ -92,6 +92,10 @@
 
 <style>
 
+  div {
+    margin-top: 3px;
+  }
+
   .picListContainer {
     height: 600px;
     overflow: auto;

@@ -36,9 +36,9 @@ output deleted.picId, deleted.ord into @output;
 
 declare @defaultCluster table (clusterId int, lastClusterPicOrd int)
 insert @defaultCluster
-select c.clusterId, max(cp.ord)
+select c.clusterId, isnull(max(cp.ord),-1)
 from dbo.cluster c
-join dbo.clusterPic cp on c.clusterId = cp.clusterId
+left join dbo.clusterPic cp on c.clusterId = cp.clusterId
 where c.isDefault = 1
 group by c.clusterId
 

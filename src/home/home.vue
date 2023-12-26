@@ -18,7 +18,14 @@ export default {
   },
   methods: {
     async loadNewPics() {
-      let response = await fetch(`http://localhost:3000/loadNewPics`)
+      let response
+      try {
+        response = await fetch(`http://localhost:3000/loadNewPics`)
+      }
+      catch (ex) {
+        this.loadNewPicsMessage = ex.message 
+        return 
+      }
       if (!response.ok) {
         this.loadNewPicsMessage = 'failed to fetch while loading new pics'
         return
