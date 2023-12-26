@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia';
+import { defineStore } from 'pinia'
 
 export default defineStore({
 
@@ -8,31 +8,38 @@ export default defineStore({
     selectedPic: null,
     selectedListType: null, // main|other
     picLists: {
-      mainPicList: [],
-      otherPicList: []
+      main: [],
+      other: []
     },
     clusterList: []
   }),
 
   getters: {
     getSelectedPic: state => state.selectedPic,
+    getProperListType: state => (listType) => 
+      listType == 'selected' 
+      ? state.selectedListType 
+      : listType,
     getPicList: state => (listType) => {
-      listType = 
-        listType == 'selected' 
-        ? state.selectedListType 
-        : listType
+      listType = state.getProperListType(listType)
       return state.picLists[listType]
     },
     getClusterId: state => (listType) => {
-      listType = 
-        listType == 'selected' 
-        ? state.selectedListType 
-        : listType
+      listType = state.getProperListType(listType)
       let picList = state.picLists[listType] 
-      return (picList && picList.clusterId >= 0)
-        ? picList.clusterId
-        : null
-    }
+      return picList.clusterId
+    },
+    getClusterName: state => (listType) => {
+      console.log('gcn', listType)
+      let clusterId = state.getClusterId(listType)
+      let cluster = state.clusterList
+        .find(cluster => cluster.clusterId === clusterId)
+      return cluster.clusterName
+    },
+    getChanged: state => (listType) => {
+      listType = state.getProperListType(listType)
+      return state.picLists[listType]?.changed
+    }       
   },
 
   actions: {
@@ -43,7 +50,7 @@ export default defineStore({
     },
 
     setPicList(listType, picList) {
-      listType = listType == 'selected' ? selectedListType : listType 
+      listType = this.getProperListType(listType) 
       this.$state.picLists[listType] = picList
     },
 
@@ -67,6 +74,9 @@ export default defineStore({
     },
 
     async loadPics(listType, clusterId) {
+      clusterId = parseInt(clusterId)
+      if (isNaN(clusterId))
+        throw 'clusterId could not be parsed to an integer'
       let response = await fetch(
         `http://localhost:3000/pics?clusterId=${clusterId}`
       )
@@ -75,6 +85,7 @@ export default defineStore({
       let json = await response.json()
       let parsedList = JSON.parse(json)
       parsedList.clusterId = clusterId
+      parsedList.changed = false
       this.setPicList(listType, parsedList)
     },
     
@@ -84,7 +95,7 @@ export default defineStore({
       deleteFromSource
     ) {
 
-      listType = listType == 'selected' ? this.$state.selectedListType : listType       
+      listType = this.getProperListType(listType) 
       let selectedPic = this.$state.selectedPic
 
       let picList = this.$state.picLists[listType]
@@ -108,7 +119,8 @@ export default defineStore({
       }
       else 
         picList.splice(targetIndex, 0, selectedPic)
-  
+
+      picList.changed = true
       this.setPicList(listType, picList)
 
       if (
@@ -121,29 +133,38 @@ export default defineStore({
     },
     
     async deletePic(listType, picId) {
-      listType = listType == 'selected' ? this.$state.selectedListType : listType 
+      listType = this.getProperListType(listType) 
       let picList = this.$state.picLists[listType]
       let index = picList.findIndex(pic => pic.picId === picId)
       picList.splice(index,1) 
+      picList.changed = true
       this.setPicList(listType, picList)
     },
 
-    async save(listType) {
-      listType = listType == 'selected' ? this.$state.selectedListType : listType 
+    async save() {
+      console.log('saving')
+      if (this.$state.picLists.main?.changed) 
+        this.reorderClusterPics('main')
+      if (this.$state.picLists.other?.changed)
+        this.reorderClusterPics('other')
+    },
+
+    async reorderClusterPics(listType) {
+      listType = this.getProperListType(listType) 
       let picList = this.$state.picLists[listType]
       let clusterId = picList.clusterId
       let picIdCsv = picList.map(pic => pic.picId).join(',')
-      throw 'save not yet implemented'      
+      let response = await fetch(
+        `http://localhost:3000/pics/reorderClusterPics` + 
+        `?clusterId=${clusterId}` + 
+        `&picIdCsv=${picIdCsv}`
+      )
+      if (!response.ok) 
+        throw `error reordering pics`      
+      this.$state.picLists[listType].changed = false
+      console.log(`${listType} ordering saved to db`) 
     }
 
-  },
-
-  listTypeIsMain(listType) {
-    if (!['main','other','selected'].includes(listType))
-      throw 'listType must be "main", "other", or "selected"'
-    if (listType === "selected")
-      listType = selectedlistType
-    return listType === 'main'
   }
 
 })

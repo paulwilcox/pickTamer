@@ -3,15 +3,21 @@
   <div :id="id" class="picListContainer" :style="style">
 
     <div class="header">
-      <select id="ddCluster" @change="store.loadPics(listType,$event.target.value)">
+      <select 
+        id="ddCluster"
+        :disabled="store.getChanged(listType)" 
+        @change="store.loadPics(listType,$event.target.value)"
+      >
         <option value="" disabled selected>choose</option>            
         <option v-for="cluster in store.clusterList" 
           :value="cluster.clusterId"
         >
-          {{cluster.clusterName}}
+          {{ cluster.clusterName }}
         </option>
       </select>
-      <button class="linkButton" @click="save()">save</button>
+      <span v-if="store.getChanged(listType)">
+        <i style="font-size:small;"> (unsaved)</i>
+      </span>
     </div>
 
     <div class="picTablesDiv" v-if="listType == 'main' || store.showOtherPicList()">
@@ -72,7 +78,7 @@
 
   export default {
     props: {
-      id: { type: String, required: true },
+      id: { type: String, required: false },
       style: { type: Object, required: true },
       listType: { type: String, required: true }
     },

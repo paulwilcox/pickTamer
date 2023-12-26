@@ -1,6 +1,6 @@
 create or alter procedure dbo.clusterPic_reorder
 	@clusterId int = 1,
-    @picIdCsv nvarchar(max) = '7,9,15,25'
+  @picIdCsv nvarchar(max) = '7,9,15,25'
 as
 
 -- PARSE THE PICIDS (KEEP IT ORDER SENSITIVE)
@@ -9,6 +9,7 @@ declare @orderedPics table (picId int, ord int)
 insert @orderedPics 
 select val, id 
 from dbo.stringSplit(',',@picIdCsv)
+where trim(val) <> ''
 
 -- REORDER THE CLUSTER'S PICS (INSERT/DELETE AS NECESSARY)
 

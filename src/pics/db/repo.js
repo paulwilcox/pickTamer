@@ -3,8 +3,7 @@ let db = require('@db')
 module.exports = {
     getClusterPics,
     insertPic,
-    upsertClusterPic,
-    deleteClusterPic
+    reorderClusterPics
 }
 
 async function getClusterPics (clusterId = null) {
@@ -36,27 +35,12 @@ async function insertPic (extension, source, sourceShort, description, notes) {
     return result[0].picId // result should return exactly one record
 }
 
-async function upsertClusterPic (clusterId, picId, picToMoveBeforeId) {
+async function reorderClusterPics (clusterId, picIdCsv) {
     await db.execute(`
-        exec dbo.clusterPic_upsert
+        exec dbo.clusterPic_reorder
             \@clusterId = @clusterId,
-            \@picId = @picId,
-            \@picToMoveBeforeId = @picToMoveBeforeId
-        `, { clusterId, picId, picToMoveBeforeId }
-    )
-}
-
-async function deleteClusterPic (clusterId, picId) {
-    await db.execute(`
-        exec dbo.clusterPic_delete
-            \@clusterId = @clusterId,
-            \@picId = @picId
+            \@picIdCsv = @picIdCsv
         `,
-        { clusterId, picId }
-    )
-
-    await db.execute(
-        `exec dbo.pic_deorphan \@picId = @picId`, 
-        { picId }
+        { clusterId, picIdCsv}
     )
 }

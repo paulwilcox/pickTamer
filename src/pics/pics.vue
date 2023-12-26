@@ -4,7 +4,12 @@
     <div style="height:80%;">
 
       <div id="selectedPicDiv" class="picListContainer" style="width:45%;">
-        <div class="header">selected</div>
+        <div class="header">
+          selected
+          <button class="linkButton" @click="store.save()">
+            save
+          </button>
+        </div>
 
         <div v-if="store.selectedPic">
           <img
