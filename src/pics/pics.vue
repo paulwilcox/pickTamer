@@ -6,9 +6,11 @@
       <div id="selectedPicDiv" class="picListContainer" style="width:45%;">
         <div class="header">
           selected
-          <button class="linkButton" @click="store.save()">
-            save
-          </button>
+          <div>
+            <button class="linkButton" @click="store.save()">
+              save
+            </button>
+          </div>
         </div>
 
         <div v-if="store.selectedPic">

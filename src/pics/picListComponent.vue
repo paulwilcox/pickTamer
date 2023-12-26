@@ -6,7 +6,7 @@
       <select 
         id="ddCluster"
         :disabled="store.getChanged(listType)" 
-        @change="store.loadPics(listType,$event.target.value)"
+        @change="store.loadPics(listType, $event.target.value)"
       >
         <option value="" disabled selected>choose</option>            
         <option v-for="cluster in store.clusterList" 
@@ -18,6 +18,11 @@
       <span v-if="store.getChanged(listType)">
         <i style="font-size:small;"> (unsaved)</i>
       </span>
+      <div>
+        <button @click="scrollToSelected()" class="linkButton">
+          sel
+        </button>
+      </div>
     </div>
 
     <div class="picTablesDiv" v-if="listType == 'main' || store.showOtherPicList()">
@@ -74,7 +79,7 @@
 </template>
 <script>
   import storeDef from './store.js'
-  import { ref } from 'vue'
+  import { ref, toRefs } from 'vue'
 
   export default {
     props: {
@@ -93,6 +98,16 @@
       return {
         listType,
         store
+      }
+    },
+    methods: {
+      async scrollToSelected() {
+        let selectedElement = 
+          document.querySelector(`#${this.id} .selected`);
+        selectedElement?.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'center' 
+        })
       }
     }
   }
