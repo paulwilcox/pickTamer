@@ -11,7 +11,8 @@ export default defineStore({
       main: [],
       other: []
     },
-    clusterList: []
+    clusterList: [],
+    pageSize: 50
   }),
 
   getters: {
@@ -23,6 +24,13 @@ export default defineStore({
     getPicList: state => (listType) => {
       listType = state.getProperListType(listType)
       return state.picLists[listType]
+    },
+    getPicListPage: state => (listType) => {
+      let picList = state.getPicList(listType)
+      return picList.filter((pic,ix) => 
+        ix >= (picList.page - 1) * state.pageSize &&
+        ix < picList.page * state.pageSize
+      )
     },
     getClusterId: state => (listType) => {
       listType = state.getProperListType(listType)
@@ -86,6 +94,7 @@ export default defineStore({
       let parsedList = JSON.parse(json)
       parsedList.clusterId = clusterId
       parsedList.changed = false
+      parsedList.page = 1
       this.setPicList(listType, parsedList)
     },
     
@@ -163,7 +172,51 @@ export default defineStore({
         throw `error reordering pics`      
       this.$state.picLists[listType].changed = false
       console.log(`${listType} ordering saved to db`) 
-    }
+    },
+
+    pageSelected (listType) {
+      listType = this.getProperListType(listType)
+      let selectedPicId = this.$state.selectedPic?.picId
+      let selectedIndexInList = 
+        this.$state.picLists[listType]
+        .findIndex(pic => pic.picId == selectedPicId)
+      if (selectedIndexInList === -1)
+        return
+      let page = Math.ceil(
+        selectedIndexInList /
+        this.$state.pageSize
+      )
+      this.$state.picLists[listType].page = page
+    },
+
+    pageFirst (listType) {
+      listType = this.getProperListType(listType)
+      this.$state.picLists[listType].page = 1
+    },
+
+    pageLast (listType) {
+      listType = this.getProperListType(listType)
+      this.$state.picLists[listType].page = Math.ceil(
+        this.$state.picLists[listType].length /
+        this.$state.pageSize
+      )
+    },
+
+    pageDown (listType) {
+      listType = this.getProperListType(listType)
+      if (this.$state.picLists[listType].page >= 1)
+        this.$state.picLists[listType].page--
+    },
+
+    pageUp (listType) {
+      listType = this.getProperListType(listType)
+      let lastPage = Math.ceil(
+        this.$state.picLists[listType].length /
+        this.$state.pageSize 
+      )
+      if (this.$state.picLists[listType].page < lastPage)
+        this.$state.picLists[listType].page++
+    } 
 
   }
 

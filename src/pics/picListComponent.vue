@@ -19,14 +19,26 @@
         <i style="font-size:small;"> (unsaved)</i>
       </span>
       <div>
+        <button @click="store.pageFirst(listType)" class="linkButton">
+          &lt;&lt;
+        </button>
+        <button @click="store.pageDown(listType)" class="linkButton">
+          &lt;
+        </button>
         <button @click="scrollToSelected()" class="linkButton">
-          sel
+          selected
+        </button>
+        <button @click="store.pageUp(listType)" class="linkButton">
+          &gt;
+        </button>
+        <button @click="store.pageLast(listType)" class="linkButton">
+          &gt;&gt;
         </button>
       </div>
     </div>
 
     <div class="picTablesDiv" v-if="listType == 'main' || store.showOtherPicList()">
-      <table v-for="pic in store.getPicList(listType)" class="picTable">
+      <table v-for="pic in store.getPicListPage(listType)" class="picTable">
         <tr>
           <td></td>
           <td></td>
@@ -79,7 +91,7 @@
 </template>
 <script>
   import storeDef from './store.js'
-  import { ref, toRefs } from 'vue'
+  import { ref } from 'vue'
 
   export default {
     props: {
@@ -102,6 +114,7 @@
     },
     methods: {
       async scrollToSelected() {
+        await this.store.pageSelected(this.listType)
         let selectedElement = 
           document.querySelector(`#${this.id} .selected`);
         selectedElement?.scrollIntoView({ 
