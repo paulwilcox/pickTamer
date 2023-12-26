@@ -12,7 +12,8 @@ export default defineStore({
       other: []
     },
     clusterList: [],
-    pageSize: 50
+    pageSize: 50,
+    message: "welcome"
   }),
 
   getters: {
@@ -38,7 +39,6 @@ export default defineStore({
       return picList.clusterId
     },
     getClusterName: state => (listType) => {
-      console.log('gcn', listType)
       let clusterId = state.getClusterId(listType)
       let cluster = state.clusterList
         .find(cluster => cluster.clusterId === clusterId)
@@ -47,7 +47,7 @@ export default defineStore({
     getChanged: state => (listType) => {
       listType = state.getProperListType(listType)
       return state.picLists[listType]?.changed
-    }       
+    }
   },
 
   actions: {
@@ -153,6 +153,7 @@ export default defineStore({
     async save() {
 
       console.log('saving')
+      this.$state.message = "saving"
 
       if (this.$state.picLists.main?.changed) 
         this.reorderClusterPics('main')
@@ -178,6 +179,13 @@ export default defineStore({
         throw `error saving pic(s)`      
 
       console.log('selected pic saved to db')
+      this.$state.message += ` - pic ${this.$state.selectedPic.picId}`
+
+      let date = new Date()
+      let hh = date.getHours().toString().padStart(2, '0');
+      let mm = date.getMinutes().toString().padStart(2, '0');
+      let ss = date.getSeconds().toString().padStart(2, '0');
+      this.$state.message += ` - done ${hh}:${mm}:${ss}`
 
     },
 
@@ -195,6 +203,7 @@ export default defineStore({
         throw `error reordering pics`      
       this.$state.picLists[listType].changed = false
       console.log(`${listType} ordering saved to db`) 
+      this.$state.message += ` - list ${listType}`
     },
 
     pageSelected (listType) {

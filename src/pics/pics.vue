@@ -11,6 +11,7 @@
             <button class="linkButton" @click="store.save()">
               save
             </button>
+            <span id="message" style="margin-left: 15px;">{{ store.message }}</span>
           </div>
         </div>
 
@@ -123,7 +124,7 @@
     margin-bottom: 5px;
   }
 
-  label, #selectedInfo {
+  label, #selectedInfo, #message {
     font-size: small;
     font-style: italic;
     color: darkslateblue;
