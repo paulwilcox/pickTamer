@@ -16,6 +16,15 @@ router.get('/getFile', (req, res) => {
   res.sendFile(imagePath)
 })
 
+router.get('/updatePic', async (req,res) => {
+  let picId = req.query.picId
+  let label = req.query.label
+  let description = req.query.description
+  let notes = req.query.notes
+  await db.updatePic(picId, label, description, notes)
+  res.end()
+})
+
 router.get('/reorderClusterPics', async (req,res) => {
   let clusterId = req.query.clusterId
   let picIdCsv = req.query.picIdCsv

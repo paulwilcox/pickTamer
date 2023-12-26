@@ -3,5 +3,6 @@ create table dbo.pic (
 		constraint pk_pic primary key clustered (picId),
 	extension nvarchar(15) not null,
 	description nvarchar(255) null,
-	notes nvarchar(1000) null
+	notes nvarchar(1000) null,
+	label nvarchar(50) null
 )

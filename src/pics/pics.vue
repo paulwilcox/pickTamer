@@ -4,6 +4,7 @@
     <div style="height:80%;">
 
       <div id="selectedPicDiv" class="picListContainer" style="width:45%;">
+
         <div class="header">
           selected
           <div>
@@ -19,7 +20,35 @@
             :alt="`picId-${store.selectedPic.picId}`"
             style="max-width:100%;"
           >
+          <div id="selectedInfo">
+            picId: {{ store.selectedPic.picId }}<br/>
+            extension: {{ store.selectedPic.extension }}
+          </div>
+          <div>
+            <label>label</label><br/>
+            <input id="labelInput" v-model="store.selectedPic.label"/>
+          </div>
+          <div>
+            <label>description</label><br/>
+            <textarea 
+              id="descInput" 
+              v-model="store.selectedPic.description"
+              cols="50"
+            >
+            </textarea>
+          </div>
+          <div>
+            <label>notes</label><br/>
+            <textarea 
+              id="notesInput" 
+              v-model="store.selectedPic.notes"
+              cols="50"
+              rows="4"
+            >
+            </textarea>
+          </div>
         </div>
+
       </div>
 
       <picListComponent 
@@ -71,6 +100,7 @@
   }
 
   #selectedPicDiv .header { background-color: rgba(63, 63, 63, 0.25); }
+  #selectedPicDiv td { vertical-align: top; }
 
   #mainPicComponent { background-color: #f4fdf4; }
   #mainPicComponent::-webkit-scrollbar { background-color: #f4fdf4 }
@@ -91,6 +121,12 @@
     border:1px solid rgb(151, 158, 158);
     padding: 5px;
     margin-bottom: 5px;
+  }
+
+  label, #selectedInfo {
+    font-size: small;
+    font-style: italic;
+    color: darkslateblue;
   }
 
   .linkButton {

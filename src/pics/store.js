@@ -151,11 +151,34 @@ export default defineStore({
     },
 
     async save() {
+
       console.log('saving')
+
       if (this.$state.picLists.main?.changed) 
         this.reorderClusterPics('main')
       if (this.$state.picLists.other?.changed)
         this.reorderClusterPics('other')
+      
+      if (!this.$state.selectedPic)
+        return
+
+      let picId = this.$state.selectedPic.picId
+      let label = this.$state.selectedPic.label
+      let description = this.$state.selectedPic.description
+      let notes = this.$state.selectedPic.notes
+
+      let response = await fetch(
+        `http://localhost:3000/pics/updatePic` + 
+        `?picId=${picId}` + 
+        `&label=${label}` +
+        `&description=${description}` + 
+        `&notes=${notes}`
+      )
+      if (!response.ok) 
+        throw `error saving pic(s)`      
+
+      console.log('selected pic saved to db')
+
     },
 
     async reorderClusterPics(listType) {

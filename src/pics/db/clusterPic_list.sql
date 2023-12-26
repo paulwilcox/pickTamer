@@ -6,6 +6,7 @@ select
 	cp.clusterId,
 	p.picId,
 	p.extension,
+	p.label,
 	p.description,
 	p.notes,
 	cp.clusterPicId,

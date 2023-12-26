@@ -3,6 +3,7 @@ let db = require('@db')
 module.exports = {
     getClusterPics,
     insertPic,
+    updatePic,
     reorderClusterPics
 }
 
@@ -33,6 +34,18 @@ async function insertPic (extension, source, sourceShort, description, notes) {
         { extension, source, sourceShort, description, notes }
     )
     return result[0].picId // result should return exactly one record
+}
+
+async function updatePic (picId, label, description, notes) {
+    await db.execute(`
+        exec dbo.pic_update
+            \@picId = @picId,
+            \@label = @label,
+            \@description = @description,
+            \@notes = @notes
+        `,
+        { picId, label, description, notes }
+    )
 }
 
 async function reorderClusterPics (clusterId, picIdCsv) {
