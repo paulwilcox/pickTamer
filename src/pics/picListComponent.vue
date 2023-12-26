@@ -2,19 +2,20 @@
 
   <div :id="id" class="picListContainer" :style="style">
 
-    <div class="header">cluster
-      <select id="ddCluster" @change="getPics($event.target.value)">
+    <div class="header">
+      <select id="ddCluster" @change="store.loadPics(listType,$event.target.value)">
         <option value="" disabled selected>choose</option>            
-        <option v-for="cluster in clusterList" 
+        <option v-for="cluster in store.clusterList" 
           :value="cluster.clusterId"
         >
           {{cluster.clusterName}}
         </option>
       </select>
+      <button class="linkButton" @click="save()">save</button>
     </div>
 
-    <div class="picTablesDiv">
-      <table v-for="pic in picList" class="picTable">
+    <div class="picTablesDiv" v-if="listType == 'main' || store.showOtherPicList()">
+      <table v-for="pic in store.getPicList(listType)" class="picTable">
         <tr>
           <td></td>
           <td></td>
@@ -24,10 +25,10 @@
           <td></td>
           <td>
             <img
-              :src="getPicUrl(pic)"
+              :src="store.getPicUrl(pic)"
               :alt="`pic-${pic.picId}`"
-              @click="selectPic(pic, picList)"
-              :class="{ selected: selectedPicStore.pic && selectedPicStore.pic.picId === pic.picId }"
+              @click="store.selectPic(listType, pic)"
+              :class="{ selected: store.selectedPic && store.selectedPic.picId === pic.picId }"
               style="max-width: 150px;"
             />
           </td>
@@ -36,14 +37,14 @@
         <tr>
           <td></td>
           <td>
-            <div v-if="selectedPicStore.pic" style="text-align: right;">
-              <button @click="moveSelected(pic, true)" class="linkButton">
+            <div v-if="store.selectedPic" style="text-align: right;">
+              <button @click="store.movePicTo(listType, pic, true)" class="linkButton">
                 move-here
               </button>
-              <button v-if="selectedPicStore.sourceList !== picList" @click="moveSelected(pic, false)" class="linkButton">
+              <button v-if="store.selectedListType !== listType" @click="store.movePicTo(listType, pic, false)" class="linkButton">
                 copy-here
               </button>
-              <button @click="deletePic(pic, picList)" class="linkButton">
+              <button @click="store.deletePic(listType, pic.picId)" class="linkButton">
                 x
               </button>
             </div>
@@ -53,11 +54,11 @@
       </table>
     </div>
 
-    <div v-if="true">
-      <button @click="moveSelected(null, true)" class="linkButton">
+    <div v-if="store.selectedPic && store.getClusterId(listType) !== null">
+      <button @click="store.movePicTo(listType, null, true)" class="linkButton">
         move here
       </button>
-      <button @click="moveSelected(null, false)" class="linkButton">
+      <button @click="store.movePicTo(listType, null, false)" class="linkButton">
         copy here
       </button>
     </div>
@@ -66,145 +67,30 @@
 
 </template>
 <script>
-import picStore from './picStore.js'
+  import storeDef from './store.js'
+  import { ref } from 'vue'
 
-export default {
-  props: {
-    id: { type: String, required: true },
-    style: { type: Object, required: true }
-  },
-  data() {
-    return {
-      clusterList: [],
-      picList: [],
-      selectedPicStore: null
-    }
-  },
-  async mounted() {
-    this.selectedPicStore = picStore()
-    await this.getClusters()
-  },
-  methods: {
-    async getClusters() {
-      let response = await fetch('http://localhost:3000/clusters')
-      if (!response.ok) 
-        throw `error fetching clusters`
-      let json = await response.json()
-      this.clusterList = JSON.parse(json)
+  export default {
+    props: {
+      id: { type: String, required: true },
+      style: { type: Object, required: true },
+      listType: { type: String, required: true }
     },
-    async getPics(clusterId) {
-      let response = await fetch(
-        `http://localhost:3000/pics?clusterId=${clusterId}`
-      )
-      if (!response.ok) 
-        throw `error fetching pics`
+    setup(props) {
 
-      let json = await response.json()
-      let parsedList = JSON.parse(json)
-      parsedList.clusterId = clusterId
-      this.picList = parsedList
-    },
-    getPicUrl(pic) {
-      let fileName = `${pic.picId}.${pic.extension}`
-      return `http://localhost:3000/pics/getFile?fileName=${fileName}`
-    },
-    async selectPic(pic, picList) {
-      if (pic === this.selectedPicStore.pic) {
-        this.selectedPicStore.pic = null 
-        this.selectedPicStore.sourceList = null
-      }
-      else {
-        this.selectedPicStore.pic = pic
-        this.selectedPicStore.sourceList = picList
-      }
-    },
-    // todo: consider presentation moves only, with save later
-    // to prevent anxiety over layers being out of sync if there
-    // is ever a bug in one of them but not the other
-    async moveSelected(
-      targetPic, 
-      deleteFromSource
-    ) {
+      let listType = ref(props.listType)
+      let store = ref(storeDef())
+
+      if(!['main','other'].includes(props.listType))
+        throw 'listType prop must be "main" or "other"' 
       
-      let targetIndex = 
-        !targetPic 
-        ? this.picList.length // put to end
-        : this.picList.findIndex(pic => pic.picId == targetPic.picId) 
-
-      let existingIndex =
-        this.picList
-        .findIndex(pic => pic.picId == this.selectedPicStore.pic.picId)
-
-      /* presentation move */
-
-      if (existingIndex >= 0) {
-        let removed = this.picList.splice(existingIndex,1)[0]
-        // when you splice out the source, indexes 
-        // of all pic that come after reduce by 1
-        if (targetIndex > existingIndex)
-          targetIndex-- 
-        this.picList.splice(targetIndex, 0, removed)
+      return {
+        listType,
+        store
       }
-      else 
-        this.picList.splice(targetIndex, 0, this.selectedPicStore.pic)
-
-      /* database move */
-/*
-      let clusterId = this.picList.clusterId
-      let picId = this.picList[targetIndex].picId
-      let picToMoveBeforeId = targetIndex === this.picList.length - 1 
-        ? null 
-        : this.picList[targetIndex + 1].picId
-      
-      let response = await fetch(
-          `http://localhost:3000/pics/upsertClusterPic` + 
-          `?clusterId=${clusterId}` + 
-          `&picId=${picId}` + 
-          `&picToMoveBeforeId=${picToMoveBeforeId}`
-      )
-      if (!response.ok) 
-        throw `error upserting clusterPic` 
-*/
-
-      if (
-        deleteFromSource && 
-        targetPic !== this.selectedPicStore.pic &&
-        this.picList !== this.selectedPicStore.sourceList
-      ) 
-        this.deleteSelectedPic()
-
-    },
-    async deletePic(pic, list) {
-      let index = list.findIndex(listItem => listItem.picId == pic.picId)
-      list.splice(index,1) 
-/*      let response = await fetch(
-          `http://localhost:3000/pics/deleteClusterPic` + 
-          `?clusterId=${list.clusterId}` + 
-          `&picId=${pic.picId}`
-      )
-      if (!response.ok) 
-        throw `error deleting pic` 
-*/
-    },
-    async deleteSelectedPic() {
-      let index = this.selectedPicStore.sourceList.findIndex(listItem => 
-        listItem.picId == this.selectedPicStore.pic.picId
-      )
-      this.selectedPicStore.modifySourceList(list => 
-        list.splice(index,1) 
-      )
-/*
-      let response = await fetch(
-          `http://localhost:3000/pics/deleteClusterPic` + 
-          `?clusterId=${this.selectedPicStore.sourceList.clusterId}` + 
-          `&picId=${this.selectedPicStore.sourceList.pic.picId}`
-      )
-      if (!response.ok) 
-        throw `error deleting selected pic` 
-*/
     }
   }
-}
+
 </script>
 <style>
   .picTablesDiv {

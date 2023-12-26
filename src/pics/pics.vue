@@ -6,22 +6,24 @@
       <div id="selectedPicDiv" class="picListContainer" style="width:45%;">
         <div class="header">selected</div>
 
-        <div v-if="selectedPicStore.pic">
+        <div v-if="store.selectedPic">
           <img
-            :src="getPicUrl(this.selectedPicStore.pic)"
-            :alt="`picId-${this.selectedPicStore.pic.picId}`"
+            :src="store.getPicUrl(store.selectedPic)"
+            :alt="`picId-${store.selectedPic.picId}`"
             style="max-width:100%;"
           >
         </div>
       </div>
 
       <picListComponent 
-        id="mainListDiv" 
+        id="mainPicComponent" 
+        listType="main"
         style="width:35%"
       />
 
       <picListComponent 
-        id="otherListDiv" 
+        id="otherPicComponent"
+        listType="other" 
         style="width:20%"
       />
 
@@ -31,29 +33,24 @@
 </template>
 
 <script>
-import picListComponent from './picListComponent.vue'
-import picStore from './picStore.js'
-import { ref } from 'vue';
-export default {
-  components: {
-    picListComponent
-  },
-  methods: {
-    getPicUrl(pic) {
-      let fileName = `${pic.picId}.${pic.extension}`
-      return `http://localhost:3000/pics/getFile?fileName=${fileName}`
+  import picListComponent from './picListComponent.vue'
+  import storeDef from './store.js'
+  import { ref, onMounted } from 'vue';
+
+  export default {
+    components: {
+      picListComponent
     },
-    /* showOtherPicList() {
-      let clusterId = this.mainPicList.clusterId
-      let otherClusterId = this.otherPicList.clusterId
-      return clusterId != otherClusterId && otherClusterId >= 0
-    }*/
-  },
-  setup() {
-    let selectedPicStore = ref(picStore())
-    return { selectedPicStore }
+    setup() {
+      let store = ref(storeDef())
+
+      onMounted(async () => {
+        await store.value.loadClusterList()
+      });
+
+      return { store }
+    }
   }
-}
 </script>
 
 <style>
@@ -68,15 +65,15 @@ export default {
 
   #selectedPicDiv .header { background-color: rgba(63, 63, 63, 0.25); }
 
-  #mainListDiv { background-color: #f4fdf4; }
-  #mainListDiv::-webkit-scrollbar { background-color: #f4fdf4 }
-  #mainListDiv::-webkit-scrollbar-thumb { background-color: #00cc0022; }
-  #mainListDiv .header { background-color: #00cc0022; }
+  #mainPicComponent { background-color: #f4fdf4; }
+  #mainPicComponent::-webkit-scrollbar { background-color: #f4fdf4 }
+  #mainPicComponent::-webkit-scrollbar-thumb { background-color: #00cc0022; }
+  #mainPicComponent .header { background-color: #00cc0022; }
 
-  #otherListDiv { background-color: #f6cccb; }
-  #otherListDiv::-webkit-scrollbar { background-color: rgb(228, 170, 184) }
-  #otherListDiv::-webkit-scrollbar-thumb { background-color: rgba(255, 0, 0, 0.71); }
-  #otherListDiv .header { background-color: rgba(255, 0, 0, 0.71); }
+  #otherPicComponent { background-color: #f6cccb; }
+  #otherPicComponent::-webkit-scrollbar { background-color: rgb(228, 170, 184) }
+  #otherPicComponent::-webkit-scrollbar-thumb { background-color: rgba(255, 0, 0, 0.71); }
+  #otherPicComponent .header { background-color: rgba(255, 0, 0, 0.71); }
 
   .selected {
     border: 2px solid blue;
