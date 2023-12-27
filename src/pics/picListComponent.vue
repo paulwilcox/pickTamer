@@ -3,6 +3,7 @@
   <div :id="id" class="picListContainer" :style="style">
 
     <div class="header">
+      <clusters @onSelected="clusterSelected"/>
       <select 
         id="ddCluster"
         :value="store.getPicList(listType).clusterId"
@@ -105,6 +106,7 @@
 </template>
 <script>
   import storeDef from './store.js'
+  import clusters from '../clusters/clusters.vue'  
   import { ref } from 'vue'
 
   export default {
@@ -126,7 +128,14 @@
         store
       }
     },
+    components: {
+      clusters
+    },
     methods: {
+      clusterSelected(cluster) {
+        if (cluster?.clusterId !== undefined)
+        this.store.loadPics(this.listType, cluster.clusterId)
+      },
       async scrollToSelected() {
         await this.store.pageSelected(this.listType)
         let selectedElement = 

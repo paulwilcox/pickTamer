@@ -1,104 +1,97 @@
 <template>
-  <main>
-
-    <div class="table">
-      <div class="row" v-for="rowCluster in clusterList">
-        <div class="col">
-          <input :placeholder="rowCluster.clusterName" v-model="rowCluster.clusterName" v-bind:disabled="cluster !== rowCluster"/>
-        </div>
-        <div class="col">
-          <button v-if="cluster===null" @click="selectCluster(rowCluster)">
-            edit
-          </button>
-          <button v-if="cluster===rowCluster" @click="updateCluster()">
-            save
-          </button>
-          <button v-if="cluster===rowCluster" @click="cancelSelect()">
-            cancel
-          </button>
-        </div>
-      </div>
-    </div>    
-
-    <div v-if="cluster===null" style="margin-top: 20px;">
-      create: <input v-model="newClusterName"/>
-      <button v-if="newClusterName!==null" @click="insertCluster()">add</button>
-    </div>
-
-  </main>
+  <select 
+    ref="ddCluster"
+    :value="cluster?.clusterId" 
+    @click="selectCluster($event)"
+  >
+    <option value="" :selected="cluster===null">
+      {{ (this.cluster === null ? '-choose-' : 'parent') }}
+    </option>
+    <option v-for="cluster in showClusters()" :value="cluster.clusterId">
+      {{ cluster.clusterName }}
+    </option>
+  </select>    
 </template>
 <script>
-export default {
-  data() {
-    return {
-      cluster: null,
-      clusterList: [],
-      newClusterName: null
+  export default {
+    data() {
+      return {
+        cluster: null,
+        clusterList: [],
+        newClusterName: null,
+      };
+    },
+    async mounted() {
+      await this.getClusters()
+    },
+    methods: {
+      async getClusters() {
+        let response = await fetch('http://localhost:3000/clusters');
+        if (!response.ok)
+          throw `error fetching clusters`;
+        let json = await response.json();
+        this.clusterList = JSON.parse(json);
+      },
+      selectCluster(event) {
+        let clusterId = parseInt(event.target.value)
+        let lastClusterId = this.cluster?.clusterId || null
+        if (isNaN(clusterId)) 
+          this.selectParentCluster()
+        else 
+          this.cluster = 
+            this.clusterList
+            .find(cluster => cluster.clusterId === clusterId)
+        let showCount = this.showClusters().length
+        this.$refs.ddCluster.size = 
+          this.cluster === null ? 1
+          : lastClusterId === this.cluster.clusterId ? 1
+          : showCount === 1 ? 1
+          : showCount + 1
+        this.$emit('onSelected',this.cluster)
+      },
+      selectParentCluster() {
+        if (!this.cluster)
+          return
+        let clusterName = this.cluster.clusterName
+        let dashIx = clusterName.indexOf('-')
+        if (dashIx == -1) {
+          this.cluster = null
+          return
+        }
+        let parentName = clusterName.substring(0,dashIx)
+        this.cluster = 
+          this.clusterList
+          .find(cluster => cluster.clusterName === parentName)
+      },
+      showClusters() {
+        if(this.cluster === null)
+          return this.clusterList
+            .filter(cluster => !cluster.clusterName.includes('-'))
+        return this.clusterList.filter(c => 
+          c.clusterName.startsWith(this.cluster.clusterName)
+        )    
+      },
+      async updateCluster() {
+        let response = await fetch(`http://localhost:3000/clusters/updateCluster` +
+          `?clusterId=${this.cluster.clusterId}` +
+          `&clusterName=${this.cluster.clusterName}`);
+        if (!response.ok)
+          throw 'failure updating cluster';
+        this.cluster = null
+        this.editing = false
+      },
+      async insertCluster() {
+        this.cluster = null;
+        this.newClusterName = this.newClusterName.toLowerCase();
+        if (this.clusterList.some(row => row.clusterName === this.newClusterName))
+          throw 'Cannot insert, that name already exists';
+        let response = await fetch(`http://localhost:3000/clusters/insertCluster` +
+          `?clusterName=${this.newClusterName}`);
+        if (!response.ok)
+          throw 'failure updating cluster';
+        this.newClusterName = null;
+        this.getClusters();
+      }
     }
-  },
-  methods: {
-    async getClusters() {
-      let response = await fetch('http://localhost:3000/clusters')
-      if (!response.ok) 
-        throw `error fetching clusters`
-      let json = await response.json()
-      this.clusterList = JSON.parse(json)
-    },
-    selectCluster(cluster) {
-      this.cluster = cluster
-    },
-    cancelSelect() {
-      this.cluster = null
-    },
-    async updateCluster() {
-      let response = await fetch(
-        `http://localhost:3000/clusters/updateCluster` +
-        `?clusterId=${this.cluster.clusterId}` +
-        `&clusterName=${this.cluster.clusterName}`
-      )
-      if (!response.ok)
-        throw 'failure updating cluster'
-      this.cluster = null
-    },
-    async insertCluster() {
-      
-      this.cluster = null
-      this.newClusterName = this.newClusterName.toLowerCase()
-      
-      if (this.clusterList.some(row => 
-        row.clusterName === this.newClusterName
-      ))
-        throw 'Cannot insert, that name already exists'
-      
-      let response = await fetch(
-        `http://localhost:3000/clusters/insertCluster` +
-        `?clusterName=${this.newClusterName}`
-      )
-      if (!response.ok)
-        throw 'failure updating cluster'
-
-      this.newClusterName = null
-      this.getClusters()
-
-    }
-  },
-  async mounted() {
-    await this.getClusters()
   }
-}
 </script>
-<style>
-
-  .table {
-    display: table;
-  }
-
-  .row {
-    display: table-row;
-  }
-
-  .col {
-    display: table-cell;
-  }
-
-</style>
