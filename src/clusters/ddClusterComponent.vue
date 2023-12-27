@@ -2,7 +2,7 @@
   <select 
     ref="ddCluster"
     :value="cluster?.clusterId" 
-    @click="selectCluster($event)"
+    @click="selectCluster($event.target.value)"
   >
     <option value="" :selected="cluster===null">
       -choose-
@@ -14,17 +14,33 @@
 </template>
 <script>
   export default {
+    props: {
+      clusterNameWatcher: { type: String, required: false }
+    },
     data() {
       return {
         cluster: null,
-        clusterList: [],
-        newClusterName: null,
-      };
+        clusterList: []
+      }
     },
     async mounted() {
       await this.getClusters()
     },
+    watch: {
+      async clusterNameWatcher(newClusterName) {
+        if (!newClusterName)
+          return
+        console.log(`refreshing to add: ${newClusterName}`)
+        await this.getClusters()
+        let cluster = 
+          this.clusterList.find(cluster => 
+            cluster.clusterName.toLowerCase() == newClusterName.toLowerCase()
+          )
+        this.selectCluster(cluster?.clusterId)
+      } 
+    },
     methods: {
+
       async getClusters() {
         let response = await fetch('http://localhost:3000/clusters');
         if (!response.ok)
@@ -32,10 +48,10 @@
         let json = await response.json();
         this.clusterList = JSON.parse(json);
       },
-      selectCluster(event) {
-        let clusterId = parseInt(event.target.value)
-        let lastClusterId = this.cluster?.clusterId || null
 
+      selectCluster(clusterId) {
+        clusterId = parseInt(clusterId)
+        let lastClusterId = this.cluster?.clusterId || null
         if (isNaN(clusterId) && lastClusterId === null)
           return
         else if (isNaN(clusterId))   
@@ -52,6 +68,7 @@
           : showCount + 1
         this.$emit('onSelected',this.cluster)
       },
+
       showClusters() {
         if(this.cluster === null)
           return this.clusterList
@@ -59,28 +76,8 @@
         return this.clusterList.filter(c => 
           c.clusterName.startsWith(this.cluster.clusterName)
         )    
-      },
-      async updateCluster() {
-        let response = await fetch(`http://localhost:3000/clusters/updateCluster` +
-          `?clusterId=${this.cluster.clusterId}` +
-          `&clusterName=${this.cluster.clusterName}`);
-        if (!response.ok)
-          throw 'failure updating cluster';
-        this.cluster = null
-        this.editing = false
-      },
-      async insertCluster() {
-        this.cluster = null;
-        this.newClusterName = this.newClusterName.toLowerCase();
-        if (this.clusterList.some(row => row.clusterName === this.newClusterName))
-          throw 'Cannot insert, that name already exists';
-        let response = await fetch(`http://localhost:3000/clusters/insertCluster` +
-          `?clusterName=${this.newClusterName}`);
-        if (!response.ok)
-          throw 'failure updating cluster';
-        this.newClusterName = null;
-        this.getClusters();
       }
+
     }
   }
 </script>

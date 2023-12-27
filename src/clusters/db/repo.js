@@ -21,10 +21,12 @@ async function updateCluster(clusterId, clusterName) {
 }
 
 async function insertCluster(clusterName) {
-    return await db.execute(`
-      exec dbo.cluster_insert 
-        \@clusterName = @clusterName
-      `,
-      { clusterName }
-    )
+    let result = 
+      await db.query(`
+        exec dbo.cluster_insert 
+          \@clusterName = @clusterName
+        `,
+        { clusterName }
+      )
+    return result[0].clusterId // result should return exactly one record
 }

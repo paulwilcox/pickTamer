@@ -15,5 +15,10 @@ if exists (
 	;throw 50000, '' , 1
 end 
 
+declare @inserteds table (clusterId int)
+
 insert dbo.cluster (clusterName)
+output inserted.clusterId into @inserteds
 values (@clusterName)
+
+select clusterId from @inserteds
