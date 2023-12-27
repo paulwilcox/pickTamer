@@ -83,8 +83,11 @@ export default defineStore({
 
     async loadPics(listType, clusterId) {
       clusterId = parseInt(clusterId)
-      if (isNaN(clusterId))
-        throw 'clusterId could not be parsed to an integer'
+      if (isNaN(clusterId)) {
+        console.log('clusterId could not be parsed to an integer')
+        this.setPicList(listType, [])
+        return
+      }
       let response = await fetch(
         `http://localhost:3000/pics?clusterId=${clusterId}`
       )

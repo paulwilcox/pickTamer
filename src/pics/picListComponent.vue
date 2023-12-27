@@ -3,20 +3,7 @@
   <div :id="id" class="picListContainer" :style="style">
 
     <div class="header">
-      <clusters @onSelected="clusterSelected"/>
-      <select 
-        id="ddCluster"
-        :value="store.getPicList(listType).clusterId"
-        :disabled="store.getChanged(listType)" 
-        @change="store.loadPics(listType, $event.target.value)"
-      >
-        <option value="" disabled selected>choose</option>            
-        <option v-for="cluster in store.clusterList" 
-          :value="cluster.clusterId"
-        >
-          {{ cluster.clusterName }}
-        </option>
-      </select>
+      <ddClusterComponent @onSelected="clusterSelected"/>
       <span v-if="store.getChanged(listType)">
         <i style="font-size:small;"> (unsaved)</i>
       </span>
@@ -106,7 +93,7 @@
 </template>
 <script>
   import storeDef from './store.js'
-  import clusters from '../clusters/clusters.vue'  
+  import ddClusterComponent from '../clusters/ddClusterComponent.vue'  
   import { ref } from 'vue'
 
   export default {
@@ -129,12 +116,11 @@
       }
     },
     components: {
-      clusters
-    },
+    ddClusterComponent
+},
     methods: {
       clusterSelected(cluster) {
-        if (cluster?.clusterId !== undefined)
-        this.store.loadPics(this.listType, cluster.clusterId)
+        this.store.loadPics(this.listType, cluster?.clusterId)
       },
       async scrollToSelected() {
         await this.store.pageSelected(this.listType)

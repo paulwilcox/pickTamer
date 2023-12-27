@@ -1,24 +1,28 @@
 <template>
-  <ddClusterComponent @onSelected="clusterSelected"/>  
-  <div>
-    {{ this.cluster?.clusterName }}
-  </div>
+  <select 
+    ref="ddCluster"
+    :value="cluster?.clusterId" 
+    @click="selectCluster($event)"
+  >
+    <option value="" :selected="cluster===null">
+      -choose-
+    </option>
+    <option v-for="cluster in showClusters()" :value="cluster.clusterId">
+      {{ cluster.clusterName }}
+    </option>
+  </select>    
 </template>
 <script>
-  import ddClusterComponent from './ddClusterComponent.vue'  
-
   export default {
     data() {
       return {
         cluster: null,
+        clusterList: [],
         newClusterName: null,
       };
     },
     async mounted() {
       await this.getClusters()
-    },
-    components: {
-      ddClusterComponent
     },
     methods: {
       async getClusters() {
@@ -28,8 +32,33 @@
         let json = await response.json();
         this.clusterList = JSON.parse(json);
       },
-      clusterSelected(cluster) {      
-        this.cluster = cluster
+      selectCluster(event) {
+        let clusterId = parseInt(event.target.value)
+        let lastClusterId = this.cluster?.clusterId || null
+
+        if (isNaN(clusterId) && lastClusterId === null)
+          return
+        else if (isNaN(clusterId))   
+          this.cluster = null
+        else 
+          this.cluster = 
+            this.clusterList
+            .find(cluster => cluster.clusterId === clusterId)
+        let showCount = this.showClusters().length
+        this.$refs.ddCluster.size = 
+          this.cluster === null ? 1
+          : lastClusterId === this.cluster.clusterId ? 1
+          : showCount === 1 ? 1
+          : showCount + 1
+        this.$emit('onSelected',this.cluster)
+      },
+      showClusters() {
+        if(this.cluster === null)
+          return this.clusterList
+            .filter(cluster => !cluster.clusterName.includes('-'))
+        return this.clusterList.filter(c => 
+          c.clusterName.startsWith(this.cluster.clusterName)
+        )    
       },
       async updateCluster() {
         let response = await fetch(`http://localhost:3000/clusters/updateCluster` +
