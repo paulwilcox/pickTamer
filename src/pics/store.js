@@ -137,17 +137,21 @@ export default defineStore({
         pic !== selectedPic &&
         listType !== this.selectedListType
       ) 
-        this.deletePic('selected', selectedPic.picId)
+        this.deletePic('selected', selectedPic.picId, false)
     
+      this.save()
+
     },
     
-    async deletePic(listType, picId) {
+    async deletePic(listType, picId, _save = true) {
       listType = this.getProperListType(listType) 
       let picList = this.$state.picLists[listType]
       let index = picList.findIndex(pic => pic.picId === picId)
       picList.splice(index,1) 
       picList.changed = true
       this.setPicList(listType, picList)
+      if (_save) 
+        this.save()
     },
 
     async save() {

@@ -38,6 +38,19 @@
       </div>
     </div>
 
+    <div v-if="
+      store.selectedPic && 
+      store.getClusterId(listType) !== null &&
+      store.getPicList(listType).length > 0
+    ">
+      <button @click="store.movePicTo(listType, null, true)" class="linkButton">
+        move to end
+      </button>
+      <button @click="store.movePicTo(listType, null, false)" class="linkButton">
+        copy to end
+      </button>
+    </div>
+
     <div class="picTablesDiv" v-if="listType == 'main' || store.showOtherPicList()">
       <table v-for="pic in store.getPicListPage(listType)" class="picTable">
         <tr>

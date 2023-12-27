@@ -8,9 +8,6 @@
         <div class="header">
           selected
           <div>
-            <button class="linkButton" @click="store.save()">
-              save
-            </button>
             <span id="message" style="margin-left: 15px;">{{ store.message }}</span>
           </div>
         </div>
