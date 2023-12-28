@@ -7,6 +7,9 @@
       <span v-if="store.getChanged(listType)">
         <i style="font-size:small;"> (unsaved)</i>
       </span>
+      <i style="font-size:small; margin-left: 5px;">
+        {{ store.getPicList(listType).length }}
+      </i>
       <div>
         <button @click="store.pageFirst(listType)" class="linkButton">
           &lt;&lt;
@@ -39,7 +42,10 @@
       </button>
     </div>
 
-    <div class="picTablesDiv" v-if="listType == 'main' || store.showOtherPicList()">
+    <div 
+      class="picTablesDiv" 
+      v-if="listType == 'main' || store.showOtherPicList()"
+    >
       <table v-for="pic in store.getPicListPage(listType)" class="picTable">
         <tr>
           <td></td>
@@ -62,12 +68,13 @@
         <tr>
           <td></td>
           <td>
+            <div class="picInfo">{{pic.ord}}</div>
             <div v-if="store.selectedPic" style="text-align: right;">
               <button @click="store.movePicTo(listType, pic, true)" class="linkButton">
-                move-here
+                move
               </button>
               <button v-if="store.selectedListType !== listType" @click="store.movePicTo(listType, pic, false)" class="linkButton">
-                copy-here
+                copy
               </button>
               <button @click="store.deletePic(listType, pic.picId)" class="linkButton">
                 x
@@ -146,5 +153,16 @@
     display: inline-block;
     border-collapse: collapse;
     border: 1px solid darkgreen;    
+  }
+
+  .picInfo {
+    float: left;
+    text-align: left; 
+    font-size:small;
+    font-style: italic;
+    color: lightslategray;
+    vertical-align: middle;
+    padding: 1px;
+    margin-top: 4px;
   }
 </style>
