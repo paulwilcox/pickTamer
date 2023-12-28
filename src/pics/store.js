@@ -6,8 +6,8 @@ export default defineStore({
 
   state: () => ({
     selectedPic: null,
-    selectedListType: null,
-    picLists: {
+    selectedListId: null,
+    picLists: { // listId = clusterId except for the 'empty' list
       empty: []
     },
     clusterList: [],
@@ -17,35 +17,35 @@ export default defineStore({
 
   getters: {
     getSelectedPic: state => state.selectedPic,
-    getProperListType: state => (listType) => 
-      listType == 'selected' 
-      ? state.selectedListType 
-      : listType,
-    getPicList: state => (listType) => {
-      listType = state.getProperListType(listType)
-      return state.picLists[listType]
+    getProperListId: state => (listId) => 
+      listId == 'selected' 
+      ? state.selectedListId 
+      : listId,
+    getPicList: state => (listId) => {
+      listId = state.getProperListId(listId)
+      return state.picLists[listId]
     },
-    getPicListPage: state => (listType) => {
-      let picList = state.getPicList(listType)
+    getPicListPage: state => (listId) => {
+      let picList = state.getPicList(listId)
       return picList.filter((pic,ix) => 
         ix >= (picList.page - 1) * state.pageSize &&
         ix < picList.page * state.pageSize
       )
     },
-    getClusterId: state => (listType) => {
-      listType = state.getProperListType(listType)
-      let picList = state.picLists[listType] 
+    getClusterId: state => (listId) => {
+      listId = state.getProperListId(listId)
+      let picList = state.picLists[listId] 
       return picList.clusterId
     },
-    getClusterName: state => (listType) => {
-      let clusterId = state.getClusterId(listType)
+    getClusterName: state => (listId) => {
+      let clusterId = state.getClusterId(listId)
       let cluster = state.clusterList
         .find(cluster => cluster.clusterId === clusterId)
       return cluster.clusterName
     },
-    getChanged: state => (listType) => {
-      listType = state.getProperListType(listType)
-      return state.picLists[listType]?.changed
+    getChanged: state => (listId) => {
+      listId = state.getProperListId(listId)
+      return state.picLists[listId]?.changed
     }
   },
 
@@ -56,15 +56,15 @@ export default defineStore({
       return `http://localhost:3000/pics/getFile?fileName=${fileName}`
     },
 
-    setPicList(listType, picList) {
-      listType = this.getProperListType(listType) 
-      this.$state.picLists[listType] = picList
-      console.log(`picList with id = ${listType} set`)
+    setPicList(listId, picList) {
+      listId = this.getProperListId(listId) 
+      this.$state.picLists[listId] = picList
+      console.log(`picList with id = ${listId} set`)
     },
 
-    selectPic(listType, pic) { 
+    selectPic(listId, pic) { 
       this.$state.selectedPic = pic 
-      this.$state.selectedListType = listType
+      this.$state.selectedListId = listId
     },
 
     async loadClusterList() {
@@ -102,15 +102,15 @@ export default defineStore({
     },
     
     async movePicTo(
-      listType,
+      listId,
       pic, 
       deleteFromSource
     ) {
 
-      listType = this.getProperListType(listType) 
+      listId = this.getProperListId(listId) 
       let selectedPic = this.$state.selectedPic
 
-      let picList = this.$state.picLists[listType]
+      let picList = this.$state.picLists[listId]
 
       let targetIndex = 
         !pic 
@@ -133,12 +133,12 @@ export default defineStore({
         picList.splice(targetIndex, 0, selectedPic)
 
       picList.changed = true
-      this.setPicList(listType, picList)
+      this.setPicList(listId, picList)
 
       if (
         deleteFromSource && 
         pic !== selectedPic &&
-        listType !== this.selectedListType
+        listId !== this.selectedListId
       ) 
         this.deletePic('selected', selectedPic.picId, false)
     
@@ -146,13 +146,13 @@ export default defineStore({
 
     },
     
-    async deletePic(listType, picId, _save = true) {
-      listType = this.getProperListType(listType) 
-      let picList = this.$state.picLists[listType]
+    async deletePic(listId, picId, _save = true) {
+      listId = this.getProperListId(listId) 
+      let picList = this.$state.picLists[listId]
       let index = picList.findIndex(pic => pic.picId === picId)
       picList.splice(index,1) 
       picList.changed = true
-      this.setPicList(listType, picList)
+      this.setPicList(listId, picList)
       if (_save) 
         this.save()
     },
@@ -201,10 +201,10 @@ export default defineStore({
 
     },
 
-    async reorderClusterPics(listType) {
+    async reorderClusterPics(listId) {
 
-      listType = this.getProperListType(listType) 
-      let picList = this.$state.picLists[listType]
+      listId = this.getProperListId(listId) 
+      let picList = this.$state.picLists[listId]
       if (!picList.changed)
         return
 
@@ -223,21 +223,21 @@ export default defineStore({
       }
       catch (ex) {
         this.$state.message += 
-          ` - error saving listType = ${listType} : ${ex.message}`
+          ` - error saving listId = ${listId} : ${ex.message}`
           return 
       }      
       
-      this.$state.picLists[listType].changed = false
-      console.log(`${listType} ordering saved to db`) 
-      this.$state.message += ` - list ${listType}`
+      this.$state.picLists[listId].changed = false
+      console.log(`${listId} ordering saved to db`) 
+      this.$state.message += ` - list ${listId}`
 
     },
 
-    pageSelected (listType) {
-      listType = this.getProperListType(listType)
+    pageSelected (listId) {
+      listId = this.getProperListId(listId)
       let selectedPicId = this.$state.selectedPic?.picId
       let selectedIndexInList = 
-        this.$state.picLists[listType]
+        this.$state.picLists[listId]
         .findIndex(pic => pic.picId == selectedPicId)
       if (selectedIndexInList === -1)
         return
@@ -245,36 +245,36 @@ export default defineStore({
         selectedIndexInList /
         this.$state.pageSize
       )
-      this.$state.picLists[listType].page = page
+      this.$state.picLists[listId].page = page
     },
 
-    pageFirst (listType) {
-      listType = this.getProperListType(listType)
-      this.$state.picLists[listType].page = 1
+    pageFirst (listId) {
+      listId = this.getProperListId(listId)
+      this.$state.picLists[listId].page = 1
     },
 
-    pageLast (listType) {
-      listType = this.getProperListType(listType)
-      this.$state.picLists[listType].page = Math.ceil(
-        this.$state.picLists[listType].length /
+    pageLast (listId) {
+      listId = this.getProperListId(listId)
+      this.$state.picLists[listId].page = Math.ceil(
+        this.$state.picLists[listId].length /
         this.$state.pageSize
       )
     },
 
-    pageDown (listType) {
-      listType = this.getProperListType(listType)
-      if (this.$state.picLists[listType].page >= 1)
-        this.$state.picLists[listType].page--
+    pageDown (listId) {
+      listId = this.getProperListId(listId)
+      if (this.$state.picLists[listId].page >= 1)
+        this.$state.picLists[listId].page--
     },
 
-    pageUp (listType) {
-      listType = this.getProperListType(listType)
+    pageUp (listId) {
+      listId = this.getProperListId(listId)
       let lastPage = Math.ceil(
-        this.$state.picLists[listType].length /
+        this.$state.picLists[listId].length /
         this.$state.pageSize 
       )
-      if (this.$state.picLists[listType].page < lastPage)
-        this.$state.picLists[listType].page++
+      if (this.$state.picLists[listId].page < lastPage)
+        this.$state.picLists[listId].page++
     } 
 
   }
