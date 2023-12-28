@@ -7,10 +7,10 @@
       <span v-if="store.getChanged(listId)">
         <i style="font-size:small;"> (unsaved)</i>
       </span>
-      <i style="font-size:small; margin-left: 5px;">
+      <i v-if="listId != 'empty'" style="font-size:small; margin-left: 5px;">
         {{ store.getPicList(listId).length }}
       </i>
-      <div>
+      <div v-if="listId != 'empty'">
         <button @click="store.pageFirst(listId)" class="linkButton">
           &lt;&lt;
         </button>

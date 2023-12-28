@@ -4,9 +4,9 @@ create or alter procedure dbo.pic_update
 	@description nvarchar(255),
 	@notes nvarchar(1000)
 as 
-	
+
 update dbo.pic set 
-	label = @label,
-	description = @description,
-	notes = @notes
+	label = nullif(@label,'null'),
+	description = nullif(@description,'null'),
+	notes = nullif(@notes,'null')
 where picId = @picId

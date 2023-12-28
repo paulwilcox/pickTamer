@@ -20,8 +20,10 @@
           >
           <div id="selectedInfo">
             picId: {{ store.selectedPic.picId }}<br/>
-            extension: {{ store.selectedPic.extension }}
+            extension: {{ store.selectedPic.extension }}<br/>
+            source: {{ store.getClusterName('selected') }}
           </div>
+          <hr style="margin-top: 15px; margin-bottom: 15px;"/>
           <div>
             <label>label</label><br/>
             <input id="labelInput" v-model="store.selectedPic.label"/>
