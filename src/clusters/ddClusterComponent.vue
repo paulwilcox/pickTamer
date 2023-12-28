@@ -37,7 +37,7 @@
       },
 
       ddClick(clusterId) {
-        console.log('isDdc')
+        
         clusterId = parseInt(clusterId)
 
         // first click, just opening the options

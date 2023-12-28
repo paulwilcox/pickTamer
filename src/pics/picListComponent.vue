@@ -42,10 +42,7 @@
       </button>
     </div>
 
-    <div 
-      class="picTablesDiv" 
-      v-if="listType == 'main' || store.showOtherPicList()"
-    >
+    <div class="picTablesDiv">
       <table v-for="pic in store.getPicListPage(listType)" class="picTable">
         <tr>
           <td></td>
@@ -106,28 +103,23 @@
   export default {
     props: {
       id: { type: String, required: false },
-      style: { type: Object, required: true },
-      listType: { type: String, required: true }
+      style: { type: Object, required: true }
     },
-    setup(props) {
-
-      let listType = ref(props.listType)
-      let store = ref(storeDef())
-
-      if(!['main','other'].includes(props.listType))
-        throw 'listType prop must be "main" or "other"' 
-      
-      return {
-        listType,
-        store
-      }
+    setup() {
+      let store = ref(storeDef())  
+      let listType = ref("empty")
+      return { store, listType }
+    },
+    mounted() {
+      this.store.loadPics(this.listType) // listType should be 'empty'
     },
     components: {
       ddClusterComponent
     },
     methods: {
-      clusterSelected(cluster) {
-        this.store.loadPics(this.listType, cluster?.clusterId)
+      async clusterSelected(cluster) {
+        await this.store.loadPics(cluster?.clusterId)
+        this.listType = cluster?.clusterId || 'empty'
       },
       async scrollToSelected() {
         await this.store.pageSelected(this.listType)

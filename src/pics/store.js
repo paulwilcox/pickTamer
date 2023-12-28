@@ -6,10 +6,9 @@ export default defineStore({
 
   state: () => ({
     selectedPic: null,
-    selectedListType: null, // main|other
+    selectedListType: null,
     picLists: {
-      main: [],
-      other: []
+      empty: []
     },
     clusterList: [],
     pageSize: 50,
@@ -60,17 +59,12 @@ export default defineStore({
     setPicList(listType, picList) {
       listType = this.getProperListType(listType) 
       this.$state.picLists[listType] = picList
+      console.log(`picList with id = ${listType} set`)
     },
 
     selectPic(listType, pic) { 
       this.$state.selectedPic = pic 
       this.$state.selectedListType = listType
-    },
-
-    showOtherPicList() {
-      let mainClusterId = this.picLists['main']?.clusterId
-      let otherClusterId = this.picLists['other']?.clusterId
-      return mainClusterId != otherClusterId && otherClusterId >= 0
     },
 
     async loadClusterList() {
@@ -81,24 +75,30 @@ export default defineStore({
       this.$state.clusterList = JSON.parse(json)
     },
 
-    async loadPics(listType, clusterId) {
+    async loadPics(clusterId) {
       clusterId = parseInt(clusterId)
       if (isNaN(clusterId)) {
         console.log('clusterId could not be parsed to an integer')
-        this.setPicList(listType, [])
+        this.setPicList('empty', [])
         return
       }
-      let response = await fetch(
-        `http://localhost:3000/pics?clusterId=${clusterId}`
-      )
-      if (!response.ok) 
-        throw `error fetching pics`
+      let response
+      try { 
+        response = await fetch(
+          `http://localhost:3000/pics?clusterId=${clusterId}`
+        )
+        if (!response.ok) 
+          throw `error fetching pics`
+      }
+      catch(ex) {
+        this.$state.message += - ` - error ${ex.message}`
+      }
       let json = await response.json()
       let parsedList = JSON.parse(json)
       parsedList.clusterId = clusterId
       parsedList.changed = false
       parsedList.page = 1
-      this.setPicList(listType, parsedList)
+      this.setPicList(clusterId, parsedList)
     },
     
     async movePicTo(
@@ -162,10 +162,8 @@ export default defineStore({
       console.log('saving')
       this.$state.message = "saving"
 
-      if (this.$state.picLists.main?.changed) 
-        this.reorderClusterPics('main')
-      if (this.$state.picLists.other?.changed)
-        this.reorderClusterPics('other')
+      for (let picListName of Object.keys(this.$state.picLists)) 
+          this.reorderClusterPics(picListName)
       
       if (!this.$state.selectedPic)
         return
@@ -175,15 +173,22 @@ export default defineStore({
       let description = this.$state.selectedPic.description
       let notes = this.$state.selectedPic.notes
 
-      let response = await fetch(
-        `http://localhost:3000/pics/updatePic` + 
-        `?picId=${picId}` + 
-        `&label=${label}` +
-        `&description=${description}` + 
-        `&notes=${notes}`
-      )
-      if (!response.ok) 
-        throw `error saving pic(s)`      
+      let response 
+      try {
+        response = await fetch(
+          `http://localhost:3000/pics/updatePic` + 
+          `?picId=${picId}` + 
+          `&label=${label}` +
+          `&description=${description}` + 
+          `&notes=${notes}`
+        )
+        if (!response.ok) 
+          throw `error saving pic(s)`
+      }
+      catch(ex) {
+        this.state.message += ` - error ${this.message}`
+        return 
+      }      
 
       console.log('selected pic saved to db')
       this.$state.message += ` - pic ${this.$state.selectedPic.picId}`
@@ -197,20 +202,35 @@ export default defineStore({
     },
 
     async reorderClusterPics(listType) {
+
       listType = this.getProperListType(listType) 
       let picList = this.$state.picLists[listType]
+      if (!picList.changed)
+        return
+
       let clusterId = picList.clusterId
       let picIdCsv = picList.map(pic => pic.picId).join(',')
-      let response = await fetch(
-        `http://localhost:3000/pics/reorderClusterPics` + 
-        `?clusterId=${clusterId}` + 
-        `&picIdCsv=${picIdCsv}`
-      )
-      if (!response.ok) 
-        throw `error reordering pics`      
+      
+      let response
+      try {
+        response = await fetch(
+          `http://localhost:3000/pics/reorderClusterPics` + 
+          `?clusterId=${clusterId}` + 
+          `&picIdCsv=${picIdCsv}`
+        )
+        if (!response.ok) 
+          throw `error reordering pics`
+      }
+      catch (ex) {
+        this.$state.message += 
+          ` - error saving listType = ${listType} : ${ex.message}`
+          return 
+      }      
+      
       this.$state.picLists[listType].changed = false
       console.log(`${listType} ordering saved to db`) 
       this.$state.message += ` - list ${listType}`
+
     },
 
     pageSelected (listType) {

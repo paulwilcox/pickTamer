@@ -49,17 +49,8 @@
 
       </div>
 
-      <picListComponent 
-        id="mainPicComponent" 
-        listType="main"
-        style="width:35%"
-      />
-
-      <picListComponent 
-        id="otherPicComponent"
-        listType="other" 
-        style="width:20%"
-      />
+      <picListComponent id="mainPicComponent" style="width:35%" />
+      <picListComponent id="otherPicComponent" style="width:20%" />
 
     </div>
 
