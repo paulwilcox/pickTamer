@@ -10,7 +10,7 @@
           <button 
             class="linkButton" 
             style="margin-left: 5px;"
-            @click="slideShowToogle()" 
+            @click="store.slideShowToogle()" 
             v-if="this.store.selectedPic"
           >
             {{ this.store.scrollStartPic === null ? 'slide' : 'stop-slide' }}
@@ -84,50 +84,7 @@
       await this.store.loadClusterList()
     },
     beforeDestroy() {
-      clearInterval(this.intervalId);
-    },
-    methods: {
-
-      slideShowToogle() {
-
-        clearInterval(this.intervalId)
-
-        // if scrollStartPic exists, you're turning scroll off
-        if (this.store.scrollStartPic !== null) {
-          this.store.message = 'slideshow stopping'
-          this.store.selectedPic = this.store.scrollStartPic
-          this.store.scrollStartPic = null
-          this.store.message = 'slideshow stopped'
-          return
-        }
-        // otherwise, you're turning it on, it will scroll
-        // in reverse, starting from selected pic.  It will
-        // hit the beginning and start again at the selection
-
-        this.store.message = 'slideshow starting'
-
-        try {
-          if (!this.store.selectedPic) 
-            throw 'no selection to reference for sliding'
-          if (this.store.selectedPic.ord === 1)
-            throw `doesn''t make sense to have a slideshow of one pic`
-        }
-        catch(ex) {
-          this.store.message = `error - ${ex.message}`
-          return 
-        }
-
-        this.store.scrollStartPic = this.store.selectedPic
-        this.store.message = 'slideshow started'
-
-        this.intervalId = // capture intervalId for later destruction 
-          setInterval(
-            () => this.store.slideSelected(), 
-            5000 // desired seconds * 1000
-          )
-
-      }
-
+      clearInterval(this.store.intervalId);
     }
   }
 </script>

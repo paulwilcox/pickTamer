@@ -13,7 +13,8 @@ export default defineStore({
     clusterList: [],
     pageSize: 50,
     scrollStartPic: null,
-    message: "welcome"
+    message: "welcome",
+    intervalId: null
   }),
 
   getters: {
@@ -296,7 +297,47 @@ export default defineStore({
       )
       if (this.$state.picLists[listId].page < lastPage)
         this.$state.picLists[listId].page++
-    } 
+    },
+
+    slideShowToogle() {
+
+      clearInterval(this.$state.intervalId)
+
+      // if scrollStartPic exists, you're turning scroll off
+      if (this.$state.scrollStartPic !== null) {
+        this.$state.message = 'slideshow stopping'
+        this.$state.selectedPic = this.$state.scrollStartPic
+        this.$state.scrollStartPic = null
+        this.$state.message = 'slideshow stopped'
+        return
+      }
+      // otherwise, you're turning it on, it will scroll
+      // in reverse, starting from selected pic.  It will
+      // hit the beginning and start again at the selection
+
+      this.$state.message = 'slideshow starting'
+
+      try {
+        if (!this.$state.selectedPic) 
+          throw 'no selection to reference for sliding'
+        if (this.$state.selectedPic.ord === 1)
+          throw `doesn''t make sense to have a slideshow of one pic`
+      }
+      catch(ex) {
+        this.$state.message = `error - ${ex.message}`
+        return 
+      }
+
+      this.$state.scrollStartPic = this.$state.selectedPic
+      this.$state.message = 'slideshow started'
+
+      this.$state.intervalId = // capture intervalId for later destruction 
+        setInterval(
+          () => this.slideSelected(), 
+          5000 // desired seconds * 1000
+        )
+
+    }    
 
   }
 
