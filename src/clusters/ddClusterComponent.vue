@@ -1,43 +1,30 @@
 <template>
   <select 
     ref="ddCluster"
-    :value="cluster?.clusterId" 
-    @click="selectCluster($event.target.value)"
+    :value="ddCandidate?.clusterId" 
+    @click="ddClick($event.target.value)"
   >
     <option value="" :selected="cluster===null">
       -choose-
     </option>
-    <option v-for="cluster in showClusters()" :value="cluster.clusterId">
+    <option v-for="cluster in this.ddOptions" :value="cluster.clusterId">
       {{ cluster.clusterName }}
     </option>
   </select>    
 </template>
 <script>
   export default {
-    props: {
-      clusterNameWatcher: { type: String, required: false }
-    },
     data() {
       return {
         cluster: null,
-        clusterList: []
+        clusterList: [], // the full list
+        ddCandidate: null,
+        ddOptions: []  
       }
     },
     async mounted() {
       await this.getClusters()
-    },
-    watch: {
-      async clusterNameWatcher(newClusterName) {
-        if (!newClusterName)
-          return
-        console.log(`refreshing to add: ${newClusterName}`)
-        await this.getClusters()
-        let cluster = 
-          this.clusterList.find(cluster => 
-            cluster.clusterName.toLowerCase() == newClusterName.toLowerCase()
-          )
-        this.selectCluster(cluster?.clusterId)
-      } 
+      this.ddOptions = this.topLevelOptions()
     },
     methods: {
 
@@ -49,33 +36,61 @@
         this.clusterList = JSON.parse(json);
       },
 
-      selectCluster(clusterId) {
+      ddClick(clusterId) {
+        console.log('isDdc')
         clusterId = parseInt(clusterId)
-        let lastClusterId = this.cluster?.clusterId || null
-        if (isNaN(clusterId) && lastClusterId === null)
+
+        // first click, just opening the options
+        if (isNaN(clusterId) && this.ddCandidate === null)
           return
-        else if (isNaN(clusterId))   
+        
+        // clicking the first option, to start back at beginning
+        if (isNaN(clusterId)) {  
+          this.ddCandidate = null
           this.cluster = null
-        else 
-          this.cluster = 
-            this.clusterList
-            .find(cluster => cluster.clusterId === clusterId)
-        let showCount = this.showClusters().length
-        this.$refs.ddCluster.size = 
-          this.cluster === null ? 1
-          : lastClusterId === this.cluster.clusterId ? 1
-          : showCount === 1 ? 1
-          : showCount + 1
-        this.$emit('onSelected',this.cluster)
+          this.ddOptions = this.topLevelOptions()
+          this.$refs.ddCluster.size = 1
+          this.$emit('onSelected',this.cluster) // to emit deselection
+          return
+        } 
+        // past here, real option clicked
+        
+        let lastDdCandidate = this.ddCandidate
+
+        this.ddCandidate = 
+          this.ddOptions
+          .find(cluster => cluster.clusterId === clusterId)
+
+        this.ddOptions =
+          this.clusterList.filter(cluster => 
+            cluster.clusterName.startsWith(
+              this.ddCandidate.clusterName
+            )
+            || cluster === this.ddCandidate
+          )
+
+        // it's a true selection (not just drill down) 
+        if (
+          lastDdCandidate === this.ddCandidate || // user confirmed
+          this.ddOptions.length === 1 // only one option exists
+        ) {
+          this.cluster = this.ddCandidate
+          this.ddOptions = this.topLevelOptions(this.ddCandidate)
+          this.$refs.ddCluster.size = 1
+          this.$emit('onSelected',this.cluster)
+          return 
+        }
+
+        // it's just a drill down
+        this.$refs.ddCluster.size = this.ddOptions.length + 1
+
       },
 
-      showClusters() {
-        if(this.cluster === null)
-          return this.clusterList
-            .filter(cluster => !cluster.clusterName.includes('-'))
-        return this.clusterList.filter(c => 
-          c.clusterName.startsWith(this.cluster.clusterName)
-        )    
+      topLevelOptions(alsoWithCluster) {
+        return this.clusterList.filter(cluster => 
+          !cluster.clusterName.includes('-')
+          || cluster === alsoWithCluster
+        )
       }
 
     }

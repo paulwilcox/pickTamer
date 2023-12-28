@@ -1,9 +1,6 @@
 <template>
 
-  <ddClusterComponent 
-    @onSelected="clusterSelected"
-    :clusterNameWatcher="this.newClusterName"
-  />  
+  <ddClusterComponent @onSelected="clusterSelected"/>  
   
   <div v-if="this.cluster" class="table">
     <div class="row">

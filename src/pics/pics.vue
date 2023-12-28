@@ -16,7 +16,7 @@
           <img
             :src="store.getPicUrl(store.selectedPic)"
             :alt="`picId-${store.selectedPic.picId}`"
-            style="max-width:100%;"
+            style="max-width:100%; max-height: 500px;"
           >
           <div id="selectedInfo">
             picId: {{ store.selectedPic.picId }}<br/>

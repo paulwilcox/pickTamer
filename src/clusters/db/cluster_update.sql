@@ -1,6 +1,6 @@
-create procedure dbo.cluster_update
+create or alter procedure dbo.cluster_update
 	@clusterId int,
-	@clusterName nvarchar(50)
+	@clusterName nvarchar(100)
 as
 
 update dbo.cluster

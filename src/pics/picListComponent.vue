@@ -116,8 +116,8 @@
       }
     },
     components: {
-    ddClusterComponent
-},
+      ddClusterComponent
+    },
     methods: {
       clusterSelected(cluster) {
         this.store.loadPics(this.listType, cluster?.clusterId)

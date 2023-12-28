@@ -1,5 +1,5 @@
 create or alter procedure dbo.cluster_insert
-	@clusterName nvarchar(50)
+	@clusterName nvarchar(100)
 as 
 
 if exists (
