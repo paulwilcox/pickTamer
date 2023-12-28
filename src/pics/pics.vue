@@ -7,7 +7,15 @@
 
         <div class="header">
           selected
-          <div>
+          <button 
+            class="linkButton" 
+            style="margin-left: 5px;"
+            @click="slideShowToogle()" 
+            v-if="this.store.selectedPic"
+          >
+            {{ this.store.scrollStartPic === null ? 'slide' : 'stop-slide' }}
+          </button>
+          <div >
             <span id="message" style="margin-left: 15px;">{{ store.message }}</span>
           </div>
         </div>
@@ -62,7 +70,7 @@
 <script>
   import picListComponent from './picListComponent.vue'
   import storeDef from './store.js'
-  import { ref, onMounted } from 'vue';
+  import { ref } from 'vue';
 
   export default {
     components: {
@@ -70,12 +78,56 @@
     },
     setup() {
       let store = ref(storeDef())
-
-      onMounted(async () => {
-        await store.value.loadClusterList()
-      });
-
       return { store }
+    },
+    async mounted() {
+      await this.store.loadClusterList()
+    },
+    beforeDestroy() {
+      clearInterval(this.intervalId);
+    },
+    methods: {
+
+      slideShowToogle() {
+
+        clearInterval(this.intervalId)
+
+        // if scrollStartPic exists, you're turning scroll off
+        if (this.store.scrollStartPic !== null) {
+          this.store.message = 'slideshow stopping'
+          this.store.selectedPic = this.store.scrollStartPic
+          this.store.scrollStartPic = null
+          this.store.message = 'slideshow stopped'
+          return
+        }
+        // otherwise, you're turning it on, it will scroll
+        // in reverse, starting from selected pic.  It will
+        // hit the beginning and start again at the selection
+
+        this.store.message = 'slideshow starting'
+
+        try {
+          if (!this.store.selectedPic) 
+            throw 'no selection to reference for sliding'
+          if (this.store.selectedPic.ord === 1)
+            throw `doesn''t make sense to have a slideshow of one pic`
+        }
+        catch(ex) {
+          this.store.message = `error - ${ex.message}`
+          return 
+        }
+
+        this.store.scrollStartPic = this.store.selectedPic
+        this.store.message = 'slideshow started'
+
+        this.intervalId = // capture intervalId for later destruction 
+          setInterval(
+            () => this.store.slideSelected(), 
+            5000 // desired seconds * 1000
+          )
+
+      }
+
     }
   }
 </script>

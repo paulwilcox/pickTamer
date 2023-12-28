@@ -7,11 +7,12 @@ export default defineStore({
   state: () => ({
     selectedPic: null,
     selectedListId: null,
-    picLists: { // listId = clusterId except for the 'empty' list
+    picLists: { // key(aka listId) = clusterId except for the 'empty' list
       empty: []
     },
     clusterList: [],
     pageSize: 50,
+    scrollStartPic: null,
     message: "welcome"
   }),
 
@@ -74,6 +75,17 @@ export default defineStore({
     selectPic(listId, pic) { 
       this.$state.selectedPic = pic 
       this.$state.selectedListId = listId
+    },
+
+    slideSelected() { 
+      let listId = this.getProperListId('selected')
+      let picList = this.$state.picLists[listId] 
+      let ord = this.$state.selectedPic.ord - 1
+      if (ord < 1)
+        ord = this.$state.scrollStartPic.ord
+      this.$state.selectedPic = picList.find(pic => pic.ord === ord)
+      this.$state.message = 
+        `slideshow - pic ${ord} of ${this.$state.scrollStartPic.ord}`
     },
 
     async loadClusterList() {
