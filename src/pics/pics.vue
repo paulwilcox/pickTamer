@@ -100,10 +100,10 @@
   #mainPicComponent::-webkit-scrollbar-thumb { background-color: #00cc0022; }
   #mainPicComponent .header { background-color: #00cc0022; }
 
-  #otherPicComponent { background-color: #f6cccb; }
-  #otherPicComponent::-webkit-scrollbar { background-color: rgb(228, 170, 184) }
-  #otherPicComponent::-webkit-scrollbar-thumb { background-color: rgba(255, 0, 0, 0.71); }
-  #otherPicComponent .header { background-color: rgba(255, 0, 0, 0.71); }
+  #otherPicComponent { background-color: #ffecdd  }
+  #otherPicComponent::-webkit-scrollbar { background-color: #e8d6bfcc; }
+  #otherPicComponent::-webkit-scrollbar-thumb { background-color: #ffca9ab8; }
+  #otherPicComponent .header { background-color: #ffca9ab8; }
 
   .selected {
     border: 2px solid blue;

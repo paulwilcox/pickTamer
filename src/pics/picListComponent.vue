@@ -17,7 +17,11 @@
         <button @click="store.pageDown(listId)" class="linkButton">
           &lt;
         </button>
-        <button @click="scrollToSelected()" class="linkButton">
+        <button 
+          @click="scrollToSelected()" 
+          class="linkButton"
+          :style="!store.isSelectedInList(listId) ? 'color:red' : ''"
+        >
           selected
         </button>
         <button @click="store.pageUp(listId)" class="linkButton">

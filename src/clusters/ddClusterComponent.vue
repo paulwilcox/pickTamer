@@ -68,6 +68,7 @@
             )
             || cluster === this.ddCandidate
           )
+          .sort()
 
         // it's a true selection (not just drill down) 
         if (
@@ -87,10 +88,12 @@
       },
 
       topLevelOptions(alsoWithCluster) {
-        return this.clusterList.filter(cluster => 
-          !cluster.clusterName.includes('-')
-          || cluster === alsoWithCluster
-        )
+        return this.clusterList
+          .filter(cluster => 
+            !cluster.clusterName.includes('-')
+            || cluster === alsoWithCluster
+          )
+          .sort()
       }
 
     }

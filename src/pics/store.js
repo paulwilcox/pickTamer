@@ -46,6 +46,15 @@ export default defineStore({
     getChanged: state => (listId) => {
       listId = state.getProperListId(listId)
       return state.picLists[listId]?.changed
+    },
+    isSelectedInList: state => (listId) => {
+      listId = state.getProperListId(listId)
+      let picList = state.picLists[listId]
+      if (!state.selectedPic || !picList)
+        return false 
+      return state.picLists[listId].some(pic => 
+        pic.picId === state.selectedPic.picId
+      )
     }
   },
 
