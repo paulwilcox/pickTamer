@@ -25,6 +25,7 @@
             :src="store.getPicUrl(store.selectedPic)"
             :alt="`picId-${store.selectedPic.picId}`"
             style="max-width:100%; max-height: 500px;"
+            @click="this.store.fullScreenToggle()"
           >
           <div id="selectedInfo">
             picId: {{ store.selectedPic.picId }}<br/>
@@ -62,6 +63,25 @@
       <picListComponent id="mainPicComponent" style="width:35%" />
       <picListComponent id="otherPicComponent" style="width:20%" />
 
+    </div>
+
+    <div 
+      id="fullScreenDiv"
+      :style="`display:${store.fullScreenSwitch ? 'flex' : 'none'}`"
+      v-if="store.selectedPic"
+    >
+      <button
+        class="linkButton"
+        @click="this.store.fullScreenToggle()"
+        style="position:absolute; top:10px; right:10px;"
+      >
+        x
+      </button>
+      <img
+        :src="store.getPicUrl(store.selectedPic)"
+        :alt="`picId-${store.selectedPic.picId}`"
+        style="max-width:95%;max-height:95%;"
+      >
     </div>
 
   </main>
@@ -144,5 +164,19 @@
     vertical-align: middle;
     text-align: center;
   }  
+
+  #fullScreenDiv {
+      position: fixed;
+      top: 5%;
+      left: 5%;
+      width: 90%;
+      height: 90%;
+      border: 1px solid black;
+      background-color: rgb(37, 10, 37); /* Semi-transparent black background */
+      z-index: 9999; /* Ensure the overlay is on top of other elements */
+      justify-content: center;
+      align-items: center;
+      display: none;
+    }
 
 </style>

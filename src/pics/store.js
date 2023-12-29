@@ -13,6 +13,8 @@ export default defineStore({
     clusterList: [],
     pageSize: 50,
     scrollStartPic: null,
+    scrollSeconds: 4,
+    fullScreenSwitch: false,
     message: "welcome",
     intervalId: null
   }),
@@ -334,10 +336,17 @@ export default defineStore({
       this.$state.intervalId = // capture intervalId for later destruction 
         setInterval(
           () => this.slideSelected(), 
-          5000 // desired seconds * 1000
+          this.$state.scrollSeconds * 1000
         )
 
-    }    
+    },
+    
+    fullScreenToggle() {
+      this.$state.fullScreenSwitch = !this.$state.fullScreenSwitch
+      this.message = 
+        'full-screen: ' 
+        + (this.$state.fullScreenSwitch ? 'on' : 'off')
+    }
 
   }
 
