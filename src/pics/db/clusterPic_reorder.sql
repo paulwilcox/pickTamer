@@ -7,9 +7,10 @@ as
 
 declare @orderedPics table (picId int, ord int)
 insert @orderedPics 
-select val, id 
+select val, min(id) 
 from dbo.stringSplit(',',@picIdCsv)
 where trim(val) <> ''
+group by val
 
 -- REORDER THE CLUSTER'S PICS (INSERT/DELETE AS NECESSARY)
 
