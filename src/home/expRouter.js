@@ -4,7 +4,7 @@ let picsDb = require('../pics/db/repo.js')
 let fs = require('fs').promises
 let path = require('path')
 let config = require('@configJson')
-let allowedExtensions = ['jpg','jpeg','png','gif']
+let allowedExtensions = config.allowedExtensions || ['jpg'] // to still allow demo in case of config struggles by new 'client'
 
 router.get('/', (req,res) => res.send('server api home'));
 

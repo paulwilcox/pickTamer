@@ -56,7 +56,18 @@
         <tr>
           <td></td>
           <td>
+            <video 
+              v-if="pic.extension === 'mp4'"
+              muted
+              @click="store.selectPic(listId, pic)"
+              :class="{ selected: store.selectedPic && store.selectedPic.picId === pic.picId }"
+              style="max-width: 150px;"
+            >
+              <source :src="store.getPicUrl(pic,true)">
+              {{ `pic-${pic.picId}` }}
+            </video>
             <img
+              v-else
               :src="store.getPicUrl(pic)"
               :alt="`pic-${pic.picId}`"
               @click="store.selectPic(listId, pic)"

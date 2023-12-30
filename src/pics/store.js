@@ -64,9 +64,12 @@ export default defineStore({
 
   actions: {
 
-    getPicUrl(pic) {
+    getPicUrl(pic,asVideoThumb) {
       let fileName = `${pic.picId}.${pic.extension}`
-      return `http://localhost:3000/pics/getFile?fileName=${fileName}`
+      let url = `http://localhost:3000/pics/getFile?fileName=${fileName}`
+      if (asVideoThumb === true && pic.codes.videoThumb)
+        url += pic.codes.videoThumb
+      return url
     },
 
     setPicList(listId, picList) {
@@ -78,6 +81,8 @@ export default defineStore({
     selectPic(listId, pic) { 
       this.$state.selectedPic = pic 
       this.$state.selectedListId = listId
+      this.$state.videoIntervals = pic.codes.videoIntervals || []
+      this.$state.message = `selected pic:${pic.picId}`
     },
 
     slideSelected() { 
@@ -122,6 +127,8 @@ export default defineStore({
       parsedList.clusterId = clusterId
       parsedList.changed = false
       parsedList.page = 1
+      for(let pic of parsedList)
+        this.loadCodes(pic)
       this.setPicList(clusterId, parsedList)
     },
     
@@ -346,9 +353,56 @@ export default defineStore({
       this.message = 
         'full-screen: ' 
         + (this.$state.fullScreenSwitch ? 'on' : 'off')
+    },
+
+    loadCodes(pic) {
+      pic.codes = {
+        errors: ''
+      }
+
+      try { pic.codes.videoIntervals = _parseVideoIntervals(pic.notes) }
+      catch (ex) { pic.codes.errors += ` - ${ex.message}` }
+
+      try { pic.codes.videoThumb = _parseVideoThumb(pic.notes) }
+      catch (ex) { pic.codes.errors += ` - ${ex.message}` }
     }
 
   }
 
 })
 
+function _parseVideoThumb(picNote) {
+  let regex = /(?<=videoThumb\:)\d+/i 
+  let match = picNote.match(regex) 
+  if (match === null) 
+    throw 'could not find number in regex'
+  match = match[0]
+  return `#t=${match}`
+}
+
+function _parseVideoIntervals(picNote) {
+  
+  let regex = /(?<=videoIntervals\:)\[\[.*?\]\]/i 
+  let match = picNote.match(regex) 
+
+  if (match === null) 
+    throw 'could not find nested array in regex'
+
+  match = match[0]
+
+  let parsed = JSON.parse(match)
+  if (!Array.isArray(parsed)) 
+    throw 'not an array'
+
+  for(let row of parsed) {
+    if (!Array.isArray(row)) throw 'not an array of arrays'
+    if (!row.length === 2) throw 'array row not exactly two values'
+    row[0] = Number(row[0])
+    row[1] = Number(row[1])
+    if (isNaN(row[0]) || isNaN(row[1])) throw 'inner array value not a number'
+    if (!(row[0] <= row[1])) throw 'inner array values not in order'
+  }
+  
+  return parsed
+
+}

@@ -15,13 +15,27 @@
           >
             {{ this.store.scrollStartPic === null ? 'slide' : 'stop-slide' }}
           </button>
+          <button class="linkButton" @click="this.store.save()">
+            save
+          </button>
           <div >
             <span id="message" style="margin-left: 15px;">{{ store.message }}</span>
           </div>
         </div>
 
         <div v-if="store.selectedPic">
+          <video 
+            v-if="store.selectedPic.extension === 'mp4'"
+            ref="videoRef"
+            @timeupdate="videoTimeUpdate(this.$refs.videoRef)"
+            controls muted
+            style="max-width:100%; max-height: 500px;"
+          >
+            <source :src="store.getPicUrl(store.selectedPic)">
+            {{ `pic-${store.selectedPic.picId}` }}
+          </video>          
           <img
+            v-else
             :src="store.getPicUrl(store.selectedPic)"
             :alt="`picId-${store.selectedPic.picId}`"
             style="max-width:100%; max-height: 500px;"
@@ -103,16 +117,63 @@
     setup(props) {
       let store = ref(storeDef())
       let urlParams = new URLSearchParams(window.location.search);
-      let preLoadWithClusterId = 
-        ref(urlParams.get('preLoadWithClusterId'))
-      return { store, preLoadWithClusterId }
+      let preLoadWithClusterId = ref(urlParams.get('preLoadWithClusterId'))
+      let videoIntervals = ref([]) 
+      return { store, preLoadWithClusterId, videoIntervals }
     },
     async mounted() {
       await this.store.loadClusterList()
     },
+    methods: {
+
+      videoTimeUpdate (video) {
+
+        let videoIntervals = this.store.selectedPic.codes.videoIntervals
+
+        // no interval logic desired, play the full video
+        if (!videoIntervals)
+          return
+
+        // just getting started
+        if (video.currentTime < 1) {
+          video.currentTime = videoIntervals[0][0]
+          return 
+        }
+
+        let currentIntervalIx = 
+          videoIntervals.findIndex(interval => 
+            video.currentTime >= interval[0] &&
+            video.currentTime <= interval[1]
+          )
+
+        // if in an interval, do nothing, early exit
+        if (currentIntervalIx !== -1) 
+          return 
+
+        let nextIntervalIx = 
+          videoIntervals.findIndex(interval => 
+            video.currentTime <= interval[0]
+          ) 
+
+        // if there's another interval, jump to it's start
+        if (nextIntervalIx > -1) {
+          video.currentTime = videoIntervals[nextIntervalIx][0]
+          return
+        }
+
+        // otherwise end or repeat, as appropriate
+        if(video.loop)
+          video.currentTime = videoIntervals[0][0]
+        else 
+          video.pause()
+
+      }
+    },
+
     beforeDestroy() {
       clearInterval(this.store.intervalId);
     }
+
   }
 </script>
 
@@ -173,17 +234,17 @@
   }  
 
   #fullScreenDiv {
-      position: fixed;
-      top: 5%;
-      left: 5%;
-      width: 90%;
-      height: 90%;
-      border: 1px solid black;
-      background-color: rgb(37, 10, 37); /* Semi-transparent black background */
-      z-index: 9999; /* Ensure the overlay is on top of other elements */
-      justify-content: center;
-      align-items: center;
-      display: none;
-    }
+    position: fixed;
+    top: 5%;
+    left: 5%;
+    width: 90%;
+    height: 90%;
+    border: 1px solid black;
+    background-color: rgb(37, 10, 37); /* Semi-transparent black background */
+    z-index: 9999; /* Ensure the overlay is on top of other elements */
+    justify-content: center;
+    align-items: center;
+    display: none;
+  }
 
 </style>
