@@ -9,7 +9,7 @@ export default defineStore({
     selectedListId: null,
     picLists: { // key(aka listId) = clusterId except for the 'empty' list
       empty: []
-    },
+    }, 
     clusterList: [],
     pageSize: 50,
     scrollStartPic: null,
@@ -99,13 +99,13 @@ export default defineStore({
       this.$state.clusterList = JSON.parse(json)
     },
 
+    async createEmptyPicList(clusterId) {
+      clusterId = parseInt(clusterId)
+      this.setPicList(clusterId, [])
+    },
+
     async loadPics(clusterId) {
       clusterId = parseInt(clusterId)
-      if (isNaN(clusterId)) {
-        console.log('clusterId could not be parsed to an integer')
-        this.setPicList('empty', [])
-        return
-      }
       let response
       try { 
         response = await fetch(

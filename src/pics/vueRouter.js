@@ -10,6 +10,12 @@ export default new Router({
       path: '/pics',
       name: 'Pictures',
       component: picsVue,
-    },
+      props: true
+    }
   ],
+})
+
+router.beforeEach((to, from, next) => {
+  console.log('beforeEach called:', to, from);
+  next();
 });

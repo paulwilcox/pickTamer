@@ -60,7 +60,11 @@
 
       </div>
 
-      <picListComponent id="mainPicComponent" style="width:35%" />
+      <picListComponent 
+        id="mainPicComponent" 
+        style="width:35%" 
+        :preLoadWithClusterId="preLoadWithClusterId"
+      />
       <picListComponent id="otherPicComponent" style="width:20%" />
 
     </div>
@@ -96,9 +100,12 @@
     components: {
       picListComponent
     },
-    setup() {
+    setup(props) {
       let store = ref(storeDef())
-      return { store }
+      let urlParams = new URLSearchParams(window.location.search);
+      let preLoadWithClusterId = 
+        ref(urlParams.get('preLoadWithClusterId'))
+      return { store, preLoadWithClusterId }
     },
     async mounted() {
       await this.store.loadClusterList()

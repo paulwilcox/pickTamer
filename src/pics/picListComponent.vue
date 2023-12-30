@@ -107,15 +107,27 @@
   export default {
     props: {
       id: { type: String, required: false },
-      style: { type: Object, required: true }
+      style: { type: Object, required: true },
+      preLoadWithClusterId: { type: String, required: false } 
     },
-    setup() {
+    setup(props) {
       let store = ref(storeDef())  
       let listId = ref("empty")
-      return { store, listId }
+      let preLoadWithClusterId = props.preLoadWithClusterId
+      return { store, listId, preLoadWithClusterId }
     },
-    mounted() {
-      this.store.loadPics(this.listId) // listId should be 'empty'
+    async mounted() {
+
+      if (!this.preLoadWithClusterId) 
+        return 
+
+      this.listId = this.preLoadWithClusterId      
+      await this.store.createEmptyPicList(this.listId) // listId should be 'empty'
+      await this.clusterSelected({ clusterId: this.preLoadWithClusterId })
+      let picList = await this.store.getPicList(this.listId)
+      let pic = picList[picList.length - 1]
+      await this.store.selectPic(this.listId, pic)
+      this.scrollToSelected()
     },
     components: {
       ddClusterComponent
