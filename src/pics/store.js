@@ -13,7 +13,7 @@ export default defineStore({
     clusterList: [],
     pageSize: 50,
     scrollStartPic: null,
-    scrollSeconds: 4,
+    scrollSeconds: 5,
     fullScreenSwitch: false,
     message: "welcome",
     intervalId: null

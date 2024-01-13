@@ -30,15 +30,22 @@ router.get('/loadNewPics', async (req,res) => {
 
     let extension = path.extname(file).slice(1)
     let insertedPicId = await picsDb.insertPic(
-        extension, 
-        `${newFilesPath}\\${file}`, // source 
-        file // sourceShort
+      extension, 
+      `${newFilesPath}\\${file}`, // source 
+      file // sourceShort
     )
 
     let newFile = `${insertedPicId}.${extension}`
     let oldFull = `${newFilesPath}\\${file}`
     let newFull = `${imagesDirectory}\\${newFile}`
     await fs.rename(oldFull, newFull)
+
+    await picsDb.generatePicHash(
+      "SHA2_256", 
+      imagesDirectory,
+      insertedPicId,
+      extension
+    )
 
   }
 

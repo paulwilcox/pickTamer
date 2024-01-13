@@ -4,7 +4,8 @@ module.exports = {
     getClusterPics,
     insertPic,
     updatePic,
-    reorderClusterPics
+    reorderClusterPics,
+    generatePicHash
 }
 
 async function getClusterPics (clusterId = null) {
@@ -53,5 +54,17 @@ async function reorderClusterPics (clusterId, picIdCsv) {
             \@picIdCsv = @picIdCsv
         `,
         { clusterId, picIdCsv}
+    )
+}
+
+async function generatePicHash (algorithm, basePath, picId, extension) {
+    await db.execute(`
+        exec dbo.picHash_generate
+            \@algorithm = @algorithm,
+            \@basePath = @basePath,
+            \@picId = @picId,
+            \@extension = @extension
+        `,
+        { algorithm, basePath, picId, extension }
     )
 }
